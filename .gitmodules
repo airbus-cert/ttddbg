@@ -1,0 +1,3 @@
+[submodule "ttd-bindings"]
+	path = ttd-bindings
+	url = git@github.com:commial/ttd-bindings.git
