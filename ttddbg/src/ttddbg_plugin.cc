@@ -17,6 +17,8 @@
 
 #include "ttddbg_debugger.hh"
 #include "ttddbg_plugin.hh"
+#include "ttddbg_logger_ida.hh"
+#include "ttddbg_debugger_manager.hh"
 
 bool idaapi ttddbg::Plugin::run(size_t)
 {
@@ -25,8 +27,18 @@ bool idaapi ttddbg::Plugin::run(size_t)
 
 static plugmod_t* idaapi ttddbg_init(void)
 {
-	dbg = new ttddbg::Debugger();
-	return new ttddbg::Plugin();
+	auto logger = std::make_shared<ttddbg::IdaLogger>();
+	try
+	{
+		auto manager = std::make_unique<ttddbg::DebuggerManager>(logger);
+		dbg = new ttddbg::Debugger(logger, std::move(manager));
+		return new ttddbg::Plugin();
+	}
+	catch (std::exception& e)
+	{
+		logger->error(e.what());
+		return nullptr;
+	}
 }
 
 /*!

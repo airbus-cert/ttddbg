@@ -1,5 +1,8 @@
 #include "ttddbg_debugger.hh"
 #include <dbg.hpp>
+#include <winternl.h>
+#include <codecvt>
+#include <string>
 
 namespace ttddbg
 {
@@ -60,13 +63,102 @@ namespace ttddbg
 		return IDPOPT_OK;
 	}
 	
-	static ssize_t idaapi debugger_callback(void*, int notification_code, va_list va) 
+	ssize_t idaapi Debugger::debugger_callback(void*, int notification_code, va_list va)
 	{
 		Debugger* ttddbg = static_cast<Debugger*>(::dbg);
+
+		switch (notification_code) {
+			case debugger_t::ev_init_debugger: {
+				const char* hostname = va_arg(va, const char*);
+				int portnum = va_arg(va, int);
+				const char* password = va_arg(va, const char*);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onInit(std::string(hostname), portnum, std::string(password), errbuf);
+			}
+			case debugger_t::ev_get_processes: {
+				procinfo_vec_t* procs = va_arg(va, procinfo_vec_t*);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onGetProcess(procs, errbuf);
+			}
+
+			case debugger_t::ev_get_debapp_attrs: {
+				debapp_attrs_t* attrib = va_arg(va, debapp_attrs_t*);
+				return ttddbg->m_manager->onGetDebappAttrs(attrib);
+			}
+
+			case debugger_t::ev_start_process: {
+				const char* path = va_arg(va, const char*);
+				const char* args = va_arg(va, const char*);
+				const char* startdir = va_arg(va, const char*);
+				uint32 dbg_proc_flags = va_arg(va, uint32);
+				const char* input_path = va_arg(va, const char*);
+				uint32 input_file_crc32 = va_arg(va, uint32);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onStartProcess(path, args, startdir, dbg_proc_flags, input_path, input_file_crc32, errbuf);
+			}
+
+			case debugger_t::ev_set_exception_info: {
+				exception_info_t* info = va_arg(va, exception_info_t*);
+				int qty = va_arg(va, int);
+				ttddbg->m_logger->info("ev_set_exception_info");
+				return DRC_OK;
+			}
+
+			case debugger_t::ev_get_debug_event: {
+				gdecode_t* code = va_arg(va, gdecode_t*);
+				debug_event_t* event = va_arg(va, debug_event_t*);
+				int timeout_ms = va_arg(va, int);
+				return ttddbg->m_manager->onGetDebugEvent(code, event, timeout_ms);
+			}
+
+			case debugger_t::ev_get_memory_info: {
+				meminfo_vec_t* ranges = va_arg(va, meminfo_vec_t*);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onGetMemoryInfo(ranges, errbuf);
+			}
+
+			case debugger_t::ev_read_memory: {
+				size_t* nbytes = va_arg(va, size_t*);
+				ea_t ea = va_arg(va, ea_t);
+				void* buffer = va_arg(va, void*);
+				size_t size = va_arg(va, size_t);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onReadMemory(nbytes, ea, buffer, size, errbuf);
+			}
+
+			case debugger_t::ev_rebase_if_required_to: {
+				ea_t new_base = va_arg(va, ea_t);
+				return ttddbg->m_manager->onRebaseIfRequiredTo(new_base);
+			}
+
+			case debugger_t::ev_resume: {
+				debug_event_t* event = va_arg(va, debug_event_t*);
+				return ttddbg->m_manager->onResume(event);
+			}
+
+			case debugger_t::ev_read_registers: {
+				thid_t tid = va_argi(va, thid_t);
+				int clsmask = va_arg(va, int);
+				regval_t* values = va_arg(va, regval_t*);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onReadRegisters(tid, clsmask, values, errbuf);
+			}
+
+			case debugger_t::ev_suspended: {
+				bool dlls_added = va_argi(va, bool);
+				thread_name_vec_t* thr_names = va_arg(va, thread_name_vec_t*);
+				return ttddbg->m_manager->onSuspended(dlls_added, thr_names);
+			}
+			default:
+				ttddbg->m_logger->info("unhandled code ", notification_code);
+				break;
+		}
+
 		return true;
 	}
 
-	Debugger::Debugger() : debugger_t()
+	Debugger::Debugger(std::shared_ptr< ttddbg::Logger> logger, std::unique_ptr<IDebuggerManager>&& manager)
+		: m_logger { logger }, m_manager { std::move(manager) }
 	{
 		version = IDD_INTERFACE_VERSION;
 		name = "ttddbg";
@@ -78,9 +170,7 @@ namespace ttddbg
 					DBG_FLAG_DEBUG_DLL;
 
 		flags2 =	DBG_HAS_GET_PROCESSES | 
-					DBG_HAS_DETACH_PROCESS | 
-					DBG_HAS_REQUEST_PAUSE | 
-					DBG_HAS_SET_EXCEPTION_INFO | 
+					DBG_HAS_DETACH_PROCESS |  
 					DBG_HAS_THREAD_SUSPEND | 
 					DBG_HAS_THREAD_CONTINUE |
 					DBG_HAS_SET_RESUME_MODE | 
@@ -92,6 +182,7 @@ namespace ttddbg
 		regclasses = x86_register_classes;
 		default_regclasses = X86_GENERAL;
 		registers = x64_regs;
+
 		nregs = 24;
 		bpt_bytes = (const uchar*)"\xcc";
 		bpt_size = 1;
@@ -103,5 +194,4 @@ namespace ttddbg
 
 		filetype = inf_get_filetype();
 	}
-
 }
