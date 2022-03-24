@@ -20,6 +20,7 @@ namespace ttddbg
 		virtual ssize_t onResume(debug_event_t* event) = 0;
 		virtual ssize_t onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf) = 0;
 		virtual ssize_t onSuspended(bool dllsAdded, thread_name_vec_t* thrNames) = 0;
+		virtual ssize_t onExitProcess(qstring* errbuf = nullptr) = 0;
 	};
 }
 

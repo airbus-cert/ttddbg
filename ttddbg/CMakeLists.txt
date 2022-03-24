@@ -12,6 +12,8 @@ set(ttddbg_STATIC_SRC
 	src/ttddbg_debugger.cc
 	src/ttddbg_debugger_manager.cc
 	src/ttddbg_logger_ida.cc
+	src/ttddbg_event_deque.cc
+	src/ttddbg_strings.cc
 )
 
 set(ttddbg_STATIC_INCLUDE
@@ -24,6 +26,8 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_plugin.hh
 	include/ttddbg_logger.hh
 	include/ttddbg_logger_ida.hh
+	include/ttddbg_event_deque.hh
+	include/ttddbg_strings.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})

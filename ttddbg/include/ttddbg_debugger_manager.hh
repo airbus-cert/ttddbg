@@ -3,6 +3,7 @@
 
 #include "ttddbg_debugger_manager_interface.hh"
 #include "ttddbg_logger.hh"
+#include "ttddbg_event_deque.hh"
 #include <deque>
 #include <memory>
 #include <Windows.h>
@@ -17,7 +18,7 @@ namespace ttddbg
 		std::unique_ptr<TTD::Cursor> m_cursor;
 		std::shared_ptr<ttddbg::Logger> m_logger;
 		std::unique_ptr<TTD::Position> m_currentPosition;
-		std::deque<debug_event_t> m_events;
+		EventDeque m_events;
 
 	public:
 		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger);
@@ -34,6 +35,7 @@ namespace ttddbg
 		ssize_t onResume(debug_event_t* event) override;
 		ssize_t onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf) override;
 		ssize_t onSuspended(bool dllsAdded, thread_name_vec_t* thrNames) override;
+		ssize_t onExitProcess(qstring* errbuf = nullptr) override;
 	};
 }
 

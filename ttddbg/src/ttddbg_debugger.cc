@@ -149,6 +149,12 @@ namespace ttddbg
 				thread_name_vec_t* thr_names = va_arg(va, thread_name_vec_t*);
 				return ttddbg->m_manager->onSuspended(dlls_added, thr_names);
 			}
+			case debugger_t::ev_exit_process:
+			{
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onExitProcess(errbuf);
+			}
+
 			default:
 				ttddbg->m_logger->info("unhandled code ", notification_code);
 				break;

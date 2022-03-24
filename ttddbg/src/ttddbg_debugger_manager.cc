@@ -1,6 +1,8 @@
 #include "ttddbg_debugger_manager.hh"
+#include "ttddbg_strings.hh"
 #include <idp.hpp>
 #include <ida.hpp>
+
 namespace ttddbg
 {
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
@@ -23,60 +25,64 @@ namespace ttddbg
 		infos->push_back(info);
 		return DRC_OK;
 	}
+
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
 	{
 		m_logger->info("onStartProcess");
-
-		if (!m_engine.Initialize(L"C:\\Users\\sylvain\\Documents\\cmd01.run"))
+		
+		if (!m_engine.Initialize(Strings::to_wstring(path).c_str()))
 		{
 			m_logger->info("unable to load the trace ", path);
 			return DRC_FAILED;
 		}
 
 		m_cursor = std::make_unique<TTD::Cursor>(*m_engine.NewCursor());
+		
+		// Init cursor at the first position
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
 
-		debug_event_t start;
-		start.set_eid(event_id_t::PROCESS_STARTED);
-		start.pid = NO_PROCESS;
-		start.tid = NO_PROCESS;
-		start.modinfo().base = (ea_t)0x00007ff7da920000;
-		start.modinfo().rebase_to = (ea_t)0x00007ff7da920000;
-		start.modinfo().name = "cmd.exe";
-		start.modinfo().size = 0x67000;
-		start.handled = false;
-		m_events.push_back(start);
+		m_events.addProcessStartEvent(
+			1234,
+			m_cursor->GetThreadInfo()->threadid, 
+			Strings::find_module_name(m_engine.GetModuleList()[0].path), 
+			m_engine.GetModuleList()[0].base_addr,
+			0x1000, 
+			m_engine.GetModuleList()[0].imageSize
+		);
+		
+		for (int i = 1; i < m_cursor->GetThreadCount(); i++)
+		{
+			auto threadId = m_cursor->GetThreadList()[i].info->threadid;
+			m_events.addThreadStartEvent(1234, threadId);
+		}
 
-		debug_event_t initBrk;
-		initBrk.set_eid(event_id_t::BREAKPOINT);
-		initBrk.ea = m_cursor->GetProgramCounter();
-		initBrk.pid = 1234;
-		initBrk.tid = m_cursor->GetThreadInfo()->threadid;
-		initBrk.handled = true;
-		initBrk.bpt().hea = m_cursor->GetProgramCounter();
-		initBrk.bpt().kea = BADADDR;
-		m_events.push_back(initBrk);
+		for (int i = 1; i < m_engine.GetModuleCount(); i++)
+		{
+			auto moduleInfo = m_engine.GetModuleList()[i];
+			m_events.addLibLoadEvent(Strings::find_module_name(moduleInfo.path), moduleInfo.base_addr, moduleInfo.imageSize);
+		}
 
+		m_events.addBreakPointEvent(
+			1234,
+			m_cursor->GetThreadInfo()->threadid,
+			m_cursor->GetProgramCounter()
+		);
+		
 		return DRC_OK;
 	}
 	ssize_t DebuggerManager::onGetDebappAttrs(debapp_attrs_t* attrs)
 	{
 		m_logger->info("onGetDebappAttrs");
-		attrs->addrsize = 8;
-		attrs->is_be = false;
 		return DRC_OK;
 	}
 
 	ssize_t DebuggerManager::onGetDebugEvent(gdecode_t* code, debug_event_t* event, int timeout_ms)
 	{
 		m_logger->info("onGetEventDbg");
-		if (!m_events.empty())
+		if (!m_events.isEmpty())
 		{
 			*code = GDE_ONE_EVENT;
-			auto current = m_events.front();
-			m_events.pop_front();
-
-			*event = current;
+			*event = m_events.popEvent();
 		}
 		else
 		{
@@ -95,7 +101,7 @@ namespace ttddbg
 			memory_info_t info;
 			info.start_ea = moduleInfo.base_addr;
 			info.end_ea = moduleInfo.base_addr + moduleInfo.imageSize;
-			info.name = "test";
+			info.name = Strings::find_module_name(moduleInfo.path).c_str();
 			info.bitness = 2;
 			infos->push_back(info);
 		}
@@ -124,16 +130,37 @@ namespace ttddbg
 	ssize_t DebuggerManager::onResume(debug_event_t* event)
 	{
 		m_logger->info("onResume");
+		if (event->eid() == event_id_t::BREAKPOINT)
+		{
+			TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
+			m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), 1);
+			m_events.addBreakPointEvent(event->pid, event->tid, m_cursor->GetProgramCounter());
+		}
 		return DRC_OK;
 	}
 
 	ssize_t DebuggerManager::onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf)
 	{
 		m_logger->info("onReadRegisters");
-		auto threadInfo = m_cursor->GetCrossPlatformContext(0xdc8);
+		auto threadInfo = m_cursor->GetCrossPlatformContext(tid);
 
+		values[0].ival = threadInfo->rax;
+		values[1].ival = threadInfo->rcx;
+		values[2].ival = threadInfo->rdx;
+		values[3].ival = threadInfo->rbx;
+		values[4].ival = threadInfo->rsp;
+		values[5].ival = threadInfo->rbp;
+		values[6].ival = threadInfo->rsi;
+		values[7].ival = threadInfo->rdi;
+		values[8].ival = threadInfo->r8;
+		values[9].ival = threadInfo->r9;
+		values[10].ival = threadInfo->r10;
+		values[11].ival = threadInfo->r11;
+		values[12].ival = threadInfo->r12;
+		values[13].ival = threadInfo->r13;
+		values[14].ival = threadInfo->r14;
+		values[15].ival = threadInfo->r15;
 		values[16].ival = threadInfo->rip;
-		
 		
 		return DRC_OK;
 	}
@@ -141,13 +168,13 @@ namespace ttddbg
 	ssize_t DebuggerManager::onSuspended(bool dllsAdded, thread_name_vec_t* thrNames)
 	{
 		m_logger->info("onSuspended");
-		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
-		{
-			thread_name_t threadName;
-			auto threadInfo = m_cursor->GetThreadInfo(i);
-			threadName.tid = threadInfo->threadid;
-			thrNames->push_back(threadName);
-		}
+		return DRC_OK;
+	}
+
+	ssize_t DebuggerManager::onExitProcess(qstring* errbuf)
+	{
+		m_logger->info("onExitProcess");
+		m_events.addProcessExitEvent(1234);
 		return DRC_OK;
 	}
 }
