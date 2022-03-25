@@ -155,6 +155,22 @@ namespace ttddbg
 				return ttddbg->m_manager->onExitProcess(errbuf);
 			}
 
+			case debugger_t::ev_get_srcinfo_path: {
+				qstring* path = va_arg(va, qstring*);
+				ea_t base = va_arg(va, ea_t);
+				return ttddbg->m_manager->onGetSrcinfoPath(path, base);
+			}
+
+			case debugger_t::ev_update_bpts: {
+				int* nbpts = va_arg(va, int*);
+				update_bpt_info_t* bpts = va_arg(va, update_bpt_info_t*);
+				int nadd = va_arg(va, int);
+				int ndel = va_arg(va, int);
+				auto errbuf = va_arg(va, qstring*);
+				return ttddbg->m_manager->onUpdateBpts(nbpts, bpts, nadd, ndel, errbuf);
+			}
+
+
 			default:
 				ttddbg->m_logger->info("unhandled code ", notification_code);
 				break;
@@ -199,5 +215,10 @@ namespace ttddbg
 		callback = debugger_callback;
 
 		filetype = inf_get_filetype();
+	}
+
+	void Debugger::switchWay()
+	{
+		m_manager->switchWay();
 	}
 }

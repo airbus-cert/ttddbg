@@ -6,7 +6,7 @@
 namespace ttddbg
 {
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger)
+		: m_logger(logger), m_isForward { true }
 	{
 
 	}
@@ -44,9 +44,9 @@ namespace ttddbg
 		m_events.addProcessStartEvent(
 			1234,
 			m_cursor->GetThreadInfo()->threadid, 
-			Strings::find_module_name(m_engine.GetModuleList()[0].path), 
+			Strings::to_string(m_engine.GetModuleList()[0].path), 
 			m_engine.GetModuleList()[0].base_addr,
-			0x1000, 
+			m_engine.GetModuleList()[0].base_addr,
 			m_engine.GetModuleList()[0].imageSize
 		);
 		
@@ -59,7 +59,7 @@ namespace ttddbg
 		for (int i = 1; i < m_engine.GetModuleCount(); i++)
 		{
 			auto moduleInfo = m_engine.GetModuleList()[i];
-			m_events.addLibLoadEvent(Strings::find_module_name(moduleInfo.path), moduleInfo.base_addr, moduleInfo.imageSize);
+			m_events.addLibLoadEvent(Strings::to_string(moduleInfo.path), moduleInfo.base_addr, moduleInfo.imageSize);
 		}
 
 		m_events.addBreakPointEvent(
@@ -101,7 +101,7 @@ namespace ttddbg
 			memory_info_t info;
 			info.start_ea = moduleInfo.base_addr;
 			info.end_ea = moduleInfo.base_addr + moduleInfo.imageSize;
-			info.name = Strings::find_module_name(moduleInfo.path).c_str();
+			info.name = Strings::to_string(moduleInfo.path).c_str();
 			info.bitness = 2;
 			infos->push_back(info);
 		}
@@ -124,6 +124,7 @@ namespace ttddbg
 	ssize_t DebuggerManager::onRebaseIfRequiredTo(ea_t newBase)
 	{
 		m_logger->info("onRebaseIfRequiredTo ", newBase);
+		rebase_program(newBase - get_imagebase(), MSF_FIXONCE);
 		return DRC_OK;
 	}
 
@@ -133,7 +134,15 @@ namespace ttddbg
 		if (event->eid() == event_id_t::BREAKPOINT)
 		{
 			TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
-			m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), 1);
+			if (m_isForward)
+			{
+				m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), -1);
+			}
+			else
+			{
+				m_cursor->ReplayBackward(&replayrez, m_engine.GetLastPosition(), -1);
+			}
+			
 			m_events.addBreakPointEvent(event->pid, event->tid, m_cursor->GetProgramCounter());
 		}
 		return DRC_OK;
@@ -176,5 +185,40 @@ namespace ttddbg
 		m_logger->info("onExitProcess");
 		m_events.addProcessExitEvent(1234);
 		return DRC_OK;
+	}
+
+	ssize_t DebuggerManager::onGetSrcinfoPath(qstring* path, ea_t base)
+	{
+		m_logger->info("onGetSrcinfoPath");
+		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
+		{
+			auto module = m_cursor->GetModuleList()[i].module;
+			if (module->base_addr == base)
+			{
+				*path = Strings::to_string(module->path).c_str();
+				break;
+			}
+		}
+		return DRC_OK;
+	}
+
+	ssize_t DebuggerManager::onUpdateBpts(int* nbpts, update_bpt_info_t* bpts, int nadd, int ndel, qstring* errbuf)
+	{
+		m_logger->info("onUpdateBpts");
+
+		for (int i = 0; i < nadd; i++)
+		{
+			TTD::TTD_Replay_MemoryWatchpointData data;
+			data.addr = bpts[i].ea;
+			data.size = 8;
+			data.flags = TTD::BP_FLAGS::EXEC;
+			m_cursor->AddMemoryWatchpoint(&data);
+		}
+		return DRC_OK;
+	}
+
+	void DebuggerManager::switchWay()
+	{
+		m_isForward = !m_isForward;
 	}
 }

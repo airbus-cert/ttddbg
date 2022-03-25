@@ -27,7 +27,7 @@ namespace ttddbg
 		event.set_eid(event_id_t::PROCESS_STARTED);
 		event.pid = processId;
 		event.tid = threadId;
-		event.ea = BADADDR;
+		event.ea = base;
 		event.modinfo().base = base;
 		event.modinfo().rebase_to = rebase_to;
 		event.modinfo().name = moduleName.c_str();
@@ -62,9 +62,10 @@ namespace ttddbg
 	{
 		debug_event_t event;
 		event.set_eid(event_id_t::LIB_LOADED);
-		event.ea = BADADDR;
+		event.ea = base;
 		event.handled = false;
 		event.modinfo().base = base;
+		event.modinfo().rebase_to = BADADDR;
 		event.modinfo().name = moduleName.c_str();
 		event.modinfo().size = moduleSize;
 		this->pushEvent(event);

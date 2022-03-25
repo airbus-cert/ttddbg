@@ -21,6 +21,10 @@ namespace ttddbg
 		virtual ssize_t onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf) = 0;
 		virtual ssize_t onSuspended(bool dllsAdded, thread_name_vec_t* thrNames) = 0;
 		virtual ssize_t onExitProcess(qstring* errbuf = nullptr) = 0;
+		virtual ssize_t onGetSrcinfoPath(qstring* path, ea_t base) = 0;
+		virtual ssize_t onUpdateBpts(int* nbpts, update_bpt_info_t* bpts, int nadd, int ndel, qstring* errbuf) = 0;
+		
+		virtual void switchWay() = 0;
 	};
 }
 
