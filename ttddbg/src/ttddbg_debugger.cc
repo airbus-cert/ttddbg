@@ -55,6 +55,7 @@ namespace ttddbg
 		{"GS", 0, X86_SEGMENT, dt_word, NULL, 0},
 	};
 
+	/**********************************************************************/
 	static const char* idaapi debugger_set_dbg_options(const char* keyword, int /*pri*/,
 		int value_type, const void* value) {
 		if (value_type == IDPOPT_STR) {
@@ -63,6 +64,7 @@ namespace ttddbg
 		return IDPOPT_OK;
 	}
 	
+	/**********************************************************************/
 	ssize_t idaapi Debugger::debugger_callback(void*, int notification_code, va_list va)
 	{
 		Debugger* ttddbg = static_cast<Debugger*>(::dbg);
@@ -169,7 +171,12 @@ namespace ttddbg
 				auto errbuf = va_arg(va, qstring*);
 				return ttddbg->m_manager->onUpdateBpts(nbpts, bpts, nadd, ndel, errbuf);
 			}
-
+			
+			case debugger_t::ev_set_resume_mode: {
+				thid_t tid = va_argi(va, thid_t);
+				resume_mode_t resmod = va_argi(va, resume_mode_t);
+				return ttddbg->m_manager->onSetResumeMode(tid, resmod);
+			}
 
 			default:
 				ttddbg->m_logger->info("unhandled code ", notification_code);
@@ -179,6 +186,7 @@ namespace ttddbg
 		return true;
 	}
 
+	/**********************************************************************/
 	Debugger::Debugger(std::shared_ptr< ttddbg::Logger> logger, std::unique_ptr<IDebuggerManager>&& manager)
 		: m_logger { logger }, m_manager { std::move(manager) }
 	{
@@ -191,14 +199,10 @@ namespace ttddbg
 					DBG_FLAG_DEBTHREAD | 
 					DBG_FLAG_DEBUG_DLL;
 
-		flags2 =	DBG_HAS_GET_PROCESSES | 
-					DBG_HAS_DETACH_PROCESS |  
-					DBG_HAS_THREAD_SUSPEND | 
-					DBG_HAS_THREAD_CONTINUE |
-					DBG_HAS_SET_RESUME_MODE | 
-					DBG_HAS_CHECK_BPT;
+		flags2 = DBG_HAS_GET_PROCESSES |
+			DBG_HAS_SET_RESUME_MODE;
 
-		resume_modes = DBG_RESMOD_STEP_INTO | DBG_RESMOD_STEP_OVER | DBG_RESMOD_STEP_OUT;
+		resume_modes = DBG_RESMOD_STEP_INTO;
 		processor = "metapc";
 
 		regclasses = x86_register_classes;
@@ -217,6 +221,7 @@ namespace ttddbg
 		filetype = inf_get_filetype();
 	}
 
+	/**********************************************************************/
 	void Debugger::switchWay()
 	{
 		m_manager->switchWay();

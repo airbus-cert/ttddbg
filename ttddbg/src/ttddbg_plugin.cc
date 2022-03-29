@@ -20,11 +20,13 @@
 #include "ttddbg_logger_ida.hh"
 #include "ttddbg_debugger_manager.hh"
 
+/**********************************************************************/
 bool idaapi ttddbg::Plugin::run(size_t)
 {
 	return true;
 }
 
+/**********************************************************************/
 static plugmod_t* idaapi ttddbg_init(void)
 {
 	auto logger = std::make_shared<ttddbg::IdaLogger>();

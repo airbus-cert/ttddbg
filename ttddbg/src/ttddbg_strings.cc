@@ -5,6 +5,7 @@
 
 namespace ttddbg
 {
+	/**********************************************************************/
 	std::wstring Strings::to_wstring(const char* cStr)
 	{
 		auto stringSize = strnlen_s(cStr, MAX_PATH);
@@ -14,6 +15,7 @@ namespace ttddbg
 		return ws;
 	}
 
+	/**********************************************************************/
 	std::string Strings::to_string(const wchar_t* cStr)
 	{
 		auto stringSize = wcsnlen_s(cStr, MAX_PATH);
@@ -23,6 +25,7 @@ namespace ttddbg
 		return tmpString;
 	}
 
+	/**********************************************************************/
 	std::string Strings::find_module_name(const wchar_t* path)
 	{
 		std::filesystem::path modulePath(to_string(path));

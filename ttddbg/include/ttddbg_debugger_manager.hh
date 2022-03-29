@@ -45,6 +45,8 @@ namespace ttddbg
 		 */
 		bool m_isForward;
 
+		resume_mode_t m_resumeMode;
+
 	public:
 		/*!
 		 * \brief	ctor
@@ -102,7 +104,7 @@ namespace ttddbg
 
 		/*!
 		 * \brief	Read memory at a special process address
-		 * \param	nbytes	number of bytes read (ou)
+		 * \param	nbytes	number of bytes read (out)
 		 * \param	ea		memory address to read
 		 * \param	buffer	output buffer
 		 * \param	size	buffer size
@@ -122,13 +124,40 @@ namespace ttddbg
 		ssize_t onResume(debug_event_t* event) override;
 
 		/*!
-		 * \param	
+		 * \brief	use to inform the debugger to read register state
+		 * \param	tid	thread id
+		 * \param	clsmask	class mask (for xample x86 class mask)
+		 * \param	values	output register state, follow declaration of the debugger
+		 * \param	errbuf	buffer error to inform state
 		 */
 		ssize_t onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf) override;
+
+		/*!
+		 * \brief	Inform the backend that the debugger is in the suspended state
+		 * \param	dllsAdded	boolean inform that new dll has been added
+		 * \param	thrNames	current thread 
+		 */
 		ssize_t onSuspended(bool dllsAdded, thread_name_vec_t* thrNames) override;
+
+		/*!
+		 * \brief	Ask debugger to exit the debugging process
+		 * \param	errbuf	error buffer
+		 */
 		ssize_t onExitProcess(qstring* errbuf = nullptr) override;
+
+		/*!
+		 * \brief	use to retrieve compiler source files
+		 */
 		ssize_t onGetSrcinfoPath(qstring* path, ea_t base) override;
+
+		/*!
+		 * \brief	use to inform new and deleted breakpoint
+		 */
 		ssize_t onUpdateBpts(int* nbpts, update_bpt_info_t* bpts, int nadd, int ndel, qstring* errbuf) override;
+
+		ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) override;
+
+		void applyCursor(int steps);
 
 		void switchWay() override;
 	};

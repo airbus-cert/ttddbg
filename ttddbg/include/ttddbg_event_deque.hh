@@ -26,9 +26,12 @@ namespace ttddbg
 		 */
 		void addProcessStartEvent(pid_t processId, tid_t threadId, std::string& moduleName, ea_t base, ea_t rebase_to, asize_t moduleSize);
 		void addThreadStartEvent(pid_t processId, tid_t threadId);
+		void addThreadExitEvent(pid_t processId, tid_t threadId);
 		void addBreakPointEvent(pid_t processId, tid_t threadId, ea_t bpk);
 		void addLibLoadEvent(std::string& moduleName, ea_t base, asize_t moduleSize);
+		void addLibUnloadEvent(std::string& moduleName, ea_t base, asize_t moduleSize);
 		void addProcessExitEvent(pid_t processId);
+		void addStepEvent(pid_t processId, tid_t threadId);
 	};
 }
 

@@ -1,24 +1,30 @@
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include "ttddbg_debugger_manager.hh"
 #include "ttddbg_strings.hh"
 #include <idp.hpp>
 #include <ida.hpp>
 
+
 namespace ttddbg
 {
+	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }
+		: m_logger(logger), m_isForward { true }, m_resumeMode {resume_mode_t::RESMOD_NONE}
 	{
 
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf)
 	{
-		m_logger->info("OnInit");
 		return DRC_OK;
 	}
+
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetProcess(procinfo_vec_t* infos, qstring* errBuf)
 	{
-		m_logger->info("onGetProcess");
 		process_info_t info;
 		info.name = "test";
 		info.pid = 1234;
@@ -26,15 +32,42 @@ namespace ttddbg
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
-	{
-		m_logger->info("onStartProcess");
-		
-		if (!m_engine.Initialize(Strings::to_wstring(path).c_str()))
+	{	
+		// check if the file exist
+		if (!std::filesystem::exists(path))
 		{
-			m_logger->info("unable to load the trace ", path);
+			m_logger->error("unable to find trace file : ", path);
 			return DRC_FAILED;
 		}
+
+		std::ifstream traceFile(path, std::ios::out | std::ios::binary);
+		if (!traceFile.is_open())
+		{
+			m_logger->error("unable to open the trace : ", path);
+			return DRC_FAILED;
+		}
+
+		std::vector<char> magic(6);
+		traceFile.read(magic.data(), magic.size());
+		traceFile.close();
+
+		if (magic != std::vector<char>({ 'T', 'T', 'D', 'L', 'o', 'g'}))
+		{
+			m_logger->error("invalid trace file : ", path);
+			return DRC_FAILED;
+		}
+
+		// Initialize engine
+		if (!m_engine.Initialize(Strings::to_wstring(path).c_str()))
+		{
+			m_logger->error("unable to load the trace : ", path);
+			return DRC_FAILED;
+		}
+
+		// init step mode
+		m_resumeMode = resume_mode_t::RESMOD_NONE;
 
 		m_cursor = std::make_unique<TTD::Cursor>(*m_engine.NewCursor());
 		
@@ -56,10 +89,10 @@ namespace ttddbg
 			m_events.addThreadStartEvent(1234, threadId);
 		}
 
-		for (int i = 1; i < m_engine.GetModuleCount(); i++)
+		for (int i = 1; i < m_cursor->GetModuleCount(); i++)
 		{
-			auto moduleInfo = m_engine.GetModuleList()[i];
-			m_events.addLibLoadEvent(Strings::to_string(moduleInfo.path), moduleInfo.base_addr, moduleInfo.imageSize);
+			auto moduleInfo = m_cursor->GetModuleList()[i];
+			m_events.addLibLoadEvent(Strings::to_string(moduleInfo.module->path), moduleInfo.module->base_addr, moduleInfo.module->imageSize);
 		}
 
 		m_events.addBreakPointEvent(
@@ -70,15 +103,16 @@ namespace ttddbg
 		
 		return DRC_OK;
 	}
+
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetDebappAttrs(debapp_attrs_t* attrs)
 	{
-		m_logger->info("onGetDebappAttrs");
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetDebugEvent(gdecode_t* code, debug_event_t* event, int timeout_ms)
 	{
-		m_logger->info("onGetEventDbg");
 		if (!m_events.isEmpty())
 		{
 			*code = GDE_ONE_EVENT;
@@ -91,9 +125,9 @@ namespace ttddbg
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetMemoryInfo(meminfo_vec_t* infos, qstring* errbuf)
 	{
-		m_logger->info("onGetMemoryInfo");
 		auto moduleList = m_engine.GetModuleList();
 		for (int i = 0; i < m_engine.GetModuleCount(); i++)
 		{
@@ -108,9 +142,9 @@ namespace ttddbg
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onReadMemory(size_t* nbytes, ea_t ea, void* buffer, size_t size, qstring* errbuf)
 	{
-		m_logger->info("onReadMemory ", ea);
 		auto memory = m_cursor->QueryMemoryBuffer(ea, size);
 		*nbytes = memory->size;
 		if (memory->size > 0)
@@ -121,36 +155,38 @@ namespace ttddbg
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onRebaseIfRequiredTo(ea_t newBase)
 	{
-		m_logger->info("onRebaseIfRequiredTo ", newBase);
 		rebase_program(newBase - get_imagebase(), MSF_FIXONCE);
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onResume(debug_event_t* event)
 	{
-		m_logger->info("onResume");
-		if (event->eid() == event_id_t::BREAKPOINT)
+		if (event->eid() == event_id_t::BREAKPOINT || event->eid() == event_id_t::STEP)
 		{
-			TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
-			if (m_isForward)
+			switch (m_resumeMode)
 			{
-				m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), -1);
+			case resume_mode_t::RESMOD_NONE:
+				this->applyCursor(-1);
+				break;
+			case resume_mode_t::RESMOD_INTO:
+				this->applyCursor(1);
+				break;
+			default:
+				m_logger->info("unsupported resume mode ", (int)m_resumeMode);
+				break;
 			}
-			else
-			{
-				m_cursor->ReplayBackward(&replayrez, m_engine.GetLastPosition(), -1);
-			}
-			
-			m_events.addBreakPointEvent(event->pid, event->tid, m_cursor->GetProgramCounter());
+			m_resumeMode = resume_mode_t::RESMOD_NONE;
 		}
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf)
 	{
-		m_logger->info("onReadRegisters");
 		auto threadInfo = m_cursor->GetCrossPlatformContext(tid);
 
 		values[0].ival = threadInfo->rax;
@@ -170,26 +206,27 @@ namespace ttddbg
 		values[14].ival = threadInfo->r14;
 		values[15].ival = threadInfo->r15;
 		values[16].ival = threadInfo->rip;
+		values[17].ival = threadInfo->efl;
 		
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onSuspended(bool dllsAdded, thread_name_vec_t* thrNames)
 	{
-		m_logger->info("onSuspended");
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onExitProcess(qstring* errbuf)
 	{
-		m_logger->info("onExitProcess");
 		m_events.addProcessExitEvent(1234);
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetSrcinfoPath(qstring* path, ea_t base)
 	{
-		m_logger->info("onGetSrcinfoPath");
 		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
 		{
 			auto module = m_cursor->GetModuleList()[i].module;
@@ -202,21 +239,104 @@ namespace ttddbg
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
 	ssize_t DebuggerManager::onUpdateBpts(int* nbpts, update_bpt_info_t* bpts, int nadd, int ndel, qstring* errbuf)
 	{
-		m_logger->info("onUpdateBpts");
-
-		for (int i = 0; i < nadd; i++)
+		int i = 0;
+		*nbpts = 0;
+		for (; i < nadd; i++)
 		{
 			TTD::TTD_Replay_MemoryWatchpointData data;
 			data.addr = bpts[i].ea;
 			data.size = 8;
 			data.flags = TTD::BP_FLAGS::EXEC;
 			m_cursor->AddMemoryWatchpoint(&data);
+			(*nbpts)++;
+		}
+
+		for (; i < ndel; i++)
+		{
+			TTD::TTD_Replay_MemoryWatchpointData data;
+			data.addr = bpts[i].ea;
+			data.size = 8;
+			data.flags = TTD::BP_FLAGS::EXEC;
+			m_cursor->RemoveMemoryWatchpoint(&data);
+			(*nbpts)++;
 		}
 		return DRC_OK;
 	}
 
+	/**********************************************************************/
+	ssize_t DebuggerManager::onSetResumeMode(thid_t tid, resume_mode_t resmod)
+	{
+		m_resumeMode = resmod;
+		return DRC_OK;
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::applyCursor(int steps)
+	{
+		// compute current list of thread
+		std::set<uint32_t> threadBefore;
+		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
+		{
+			threadBefore.insert(m_cursor->GetThreadInfo()[i].threadid);
+		}
+
+		std::set<TTD::TTD_Replay_Module*> moduleBefore;
+		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
+		{
+			moduleBefore.insert(m_cursor->GetModuleList()[i].module);
+		}
+
+		TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
+		
+		auto view = m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), steps);
+
+		// there is at least one running thread
+		tid_t currentThreadId = m_cursor->GetThreadInfo()[0].threadid;
+
+		std::set<uint32_t> threadAfter;
+		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
+		{
+			threadAfter.insert(m_cursor->GetThreadInfo()[i].threadid);
+		}
+
+		std::set<TTD::TTD_Replay_Module*> moduleAfter;
+		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
+		{
+			moduleAfter.insert(m_cursor->GetModuleList()[i].module);
+		}
+
+		// Check created and exited thread between two state
+		std::vector<uint32_t> threadExited, threadStarted;
+
+		std::set_difference(threadBefore.begin(), threadBefore.end(), threadAfter.begin(), threadAfter.end(), std::inserter(threadExited, threadExited.begin()));
+		std::set_difference(threadAfter.begin(), threadAfter.end(), threadBefore.begin(), threadBefore.end(), std::inserter(threadStarted, threadStarted.begin()));
+
+		std::for_each(threadExited.begin(), threadExited.end(), [this](uint32_t threadId) { m_events.addThreadExitEvent(1234, threadId); });
+		std::for_each(threadStarted.begin(), threadStarted.end(), [this](uint32_t threadId) { m_events.addThreadStartEvent(1234, threadId); });
+
+		// Check loaded and unloaded modules
+		std::vector<TTD::TTD_Replay_Module*> moduleUnloaded, moduleLoaded;
+
+		std::set_difference(moduleBefore.begin(), moduleBefore.end(), moduleAfter.begin(), moduleAfter.end(), std::inserter(moduleUnloaded, moduleUnloaded.begin()));
+		std::set_difference(moduleAfter.begin(), moduleAfter.end(), moduleBefore.begin(), moduleBefore.end(), std::inserter(moduleLoaded, moduleLoaded.begin()));
+
+		std::for_each(moduleUnloaded.begin(), moduleUnloaded.end(), [this](TTD::TTD_Replay_Module* module) { m_events.addLibUnloadEvent(Strings::to_string(module->path), module->base_addr, module->imageSize); });
+		std::for_each(moduleLoaded.begin(), moduleLoaded.end(), [this](TTD::TTD_Replay_Module* module) {  m_events.addLibLoadEvent(Strings::to_string(module->path), module->base_addr, module->imageSize); });
+
+		if (steps == 1)
+		{
+			m_events.addStepEvent(1234, currentThreadId);
+		}
+		else
+		{
+			m_events.addBreakPointEvent(0, currentThreadId, m_cursor->GetProgramCounter());
+		}
+	}
+
+	/**********************************************************************/
 	void DebuggerManager::switchWay()
 	{
 		m_isForward = !m_isForward;
