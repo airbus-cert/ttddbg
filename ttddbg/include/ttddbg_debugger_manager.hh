@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 #include <Windows.h>
+#include <filesystem>
 #include "../../ttd-bindings/TTD/TTD.hpp"
 
 namespace ttddbg 
@@ -32,7 +33,6 @@ namespace ttddbg
 		 * \brief	main logger use to print informationals messages
 		 */
 		std::shared_ptr<ttddbg::Logger> m_logger;
-		std::unique_ptr<TTD::Position> m_currentPosition;
 
 		/*!
 		 * \brief	main event queue use to send message to IDA debugger thread
@@ -45,7 +45,14 @@ namespace ttddbg
 		 */
 		bool m_isForward;
 
+		/*!
+		 * \brief	State resume mode when process is resume
+		 */
 		resume_mode_t m_resumeMode;
+
+		std::filesystem::path m_targetImagePath;
+
+		bool isTargetModule(const TTD::TTD_Replay_Module& module);
 
 	public:
 		/*!
@@ -157,6 +164,12 @@ namespace ttddbg
 
 		ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) override;
 
+		ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) override;
+
+		/*!
+		 * \brief	Run steps and emit code for loaded and unloaded module
+		 * \param	steps	Number of steps to run -1 to run until next breakpoint
+		 */
 		void applyCursor(int steps);
 
 		void switchWay() override;

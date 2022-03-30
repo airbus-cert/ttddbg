@@ -178,6 +178,12 @@ namespace ttddbg
 				return ttddbg->m_manager->onSetResumeMode(tid, resmod);
 			}
 
+			case debugger_t::ev_update_call_stack: {
+				thid_t tid = va_argi(va, thid_t);
+				call_stack_t* trace = va_arg(va, call_stack_t*);
+				return ttddbg->m_manager->onUpdateCallStack(tid, trace);
+			}
+
 			default:
 				ttddbg->m_logger->info("unhandled code ", notification_code);
 				break;

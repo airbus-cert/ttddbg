@@ -117,6 +117,9 @@ namespace ttddbg
 		 * \brief	use to know if the resume is due to step of play
 		 */
 		virtual ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) = 0;
+
+
+		virtual ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) = 0;
 		
 		virtual void switchWay() = 0;
 	};
