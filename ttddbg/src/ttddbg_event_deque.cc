@@ -91,16 +91,13 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	void EventDeque::addLibUnloadEvent(std::string& moduleName, ea_t base, asize_t moduleSize)
+	void EventDeque::addLibUnloadEvent(std::string& moduleName, ea_t base)
 	{
 		debug_event_t event;
 		event.set_eid(event_id_t::LIB_UNLOADED);
-		event.ea = base;
+		event.ea = BADADDR;
 		event.handled = false;
-		event.modinfo().base = base;
-		event.modinfo().rebase_to = BADADDR;
-		event.modinfo().name = moduleName.c_str();
-		event.modinfo().size = moduleSize;
+		event.info() = moduleName.c_str();
 		this->pushEvent(event);
 	}
 

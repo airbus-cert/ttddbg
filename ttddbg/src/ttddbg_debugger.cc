@@ -228,8 +228,8 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	void Debugger::switchWay()
+	IDebuggerManager& Debugger::getManager()
 	{
-		m_manager->switchWay();
+		return *m_manager;
 	}
 }

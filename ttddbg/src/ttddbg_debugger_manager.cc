@@ -5,7 +5,7 @@
 #include "ttddbg_strings.hh"
 #include <idp.hpp>
 #include <ida.hpp>
-
+#include <segment.hpp>
 
 namespace ttddbg
 {
@@ -52,6 +52,8 @@ namespace ttddbg
 	/**********************************************************************/
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
 	{	
+		m_isForward = true;
+
 		// check if the file exist
 		if (!std::filesystem::exists(path))
 		{
@@ -155,7 +157,6 @@ namespace ttddbg
 		other.end_ea = (ea_t)0x7FFFFFFFFFFF; // Userland process on windows
 		other.bitness = 2;
 		infos->push_back(other);
-
 		return DRC_OK;
 	}
 
@@ -320,7 +321,14 @@ namespace ttddbg
 
 		TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
 		
-		auto view = m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), steps);
+		if (m_isForward)
+		{
+			m_cursor->ReplayForward(&replayrez, m_engine.GetLastPosition(), steps);
+		}
+		else
+		{
+			m_cursor->ReplayBackward(&replayrez, m_engine.GetFirstPosition(), steps);
+		}
 
 		std::set<uint32_t> threadAfter;
 		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
@@ -361,8 +369,7 @@ namespace ttddbg
 			[this](TTD::TTD_Replay_Module* module) { 
 				m_events.addLibUnloadEvent(
 					Strings::to_string(module->path), 
-					module->base_addr, 
-					module->imageSize
+					module->base_addr
 				); 
 			}
 		);

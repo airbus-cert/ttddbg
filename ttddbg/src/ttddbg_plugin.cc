@@ -20,6 +20,17 @@
 #include "ttddbg_logger_ida.hh"
 #include "ttddbg_debugger_manager.hh"
 
+
+ttddbg::Plugin::Plugin()
+{
+	register_action(m_backwardActionDesc);
+}
+
+ttddbg::Plugin::~Plugin()
+{
+	unregister_action(m_backwardAction.actionName);
+}
+
 /**********************************************************************/
 bool idaapi ttddbg::Plugin::run(size_t)
 {
@@ -56,5 +67,5 @@ plugin_t PLUGIN =
 	"Time Travel Debugger",
 	"Airbus CERT and Camille Mougey\n",
 	"ttddbg",
-	""
+	"F3"
 };

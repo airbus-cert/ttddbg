@@ -43,7 +43,7 @@ namespace ttddbg
 		 * \brief	Use to change the way of the dubugger
 		 *			We are a time travel debugger !!!
 		 */
-		void switchWay();
+		IDebuggerManager& getManager();
 	};
 }
 

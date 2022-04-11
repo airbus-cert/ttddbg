@@ -14,6 +14,7 @@ set(ttddbg_STATIC_SRC
 	src/ttddbg_logger_ida.cc
 	src/ttddbg_event_deque.cc
 	src/ttddbg_strings.cc
+	src/ttddbg_action.cc
 )
 
 set(ttddbg_STATIC_INCLUDE
@@ -28,6 +29,7 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_logger_ida.hh
 	include/ttddbg_event_deque.hh
 	include/ttddbg_strings.hh
+	include/ttddbg_action.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})
