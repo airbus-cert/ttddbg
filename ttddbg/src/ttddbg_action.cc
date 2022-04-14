@@ -9,9 +9,8 @@ namespace ttddbg
 		if (dbg != nullptr)
 		{
 			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
-			auto widget = find_widget("IDA View-RIP");
-			
-			
+			continue_process();
+			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
 		}
 		return false;
 	}
