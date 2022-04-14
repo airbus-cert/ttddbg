@@ -4,6 +4,7 @@
 #include "ttddbg_debugger_manager_interface.hh"
 #include "ttddbg_logger.hh"
 #include "ttddbg_event_deque.hh"
+#include "ttddbg_position_chooser.hh"
 #include <deque>
 #include <memory>
 #include <Windows.h>
@@ -18,6 +19,8 @@ namespace ttddbg
 	 */
 	class DebuggerManager : public IDebuggerManager
 	{
+		friend PositionChooser;
+
 	protected:
 		/*!
 		 * \brief	Time travel debugger interface
@@ -27,7 +30,7 @@ namespace ttddbg
 		/*!
 		 * \brief	current state of the time travel debugger
 		 */
-		std::unique_ptr<TTD::Cursor> m_cursor;
+		std::shared_ptr<TTD::Cursor> m_cursor;
 
 		/*!
 		 * \brief	main logger use to print informationals messages
@@ -49,6 +52,11 @@ namespace ttddbg
 		 * \brief	State resume mode when process is resume
 		 */
 		resume_mode_t m_resumeMode;
+
+		/*!
+		 * \brief	State chooser window
+		 */
+		PositionChooser *m_positionChooser;
 
 		std::filesystem::path m_targetImagePath;
 

@@ -28,9 +28,8 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }
+		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser())
 	{
-
 	}
 
 	/**********************************************************************/
@@ -74,7 +73,7 @@ namespace ttddbg
 
 		if (magic != std::vector<char>({ 'T', 'T', 'D', 'L', 'o', 'g'}))
 		{
-			m_logger->error("invalid trace file : ", path);
+			m_logger->error("invalid trace file (wrong magic) : ", path);
 			return DRC_FAILED;
 		}
 
@@ -88,7 +87,7 @@ namespace ttddbg
 		// init step mode
 		m_resumeMode = resume_mode_t::RESMOD_NONE;
 
-		m_cursor = std::make_unique<TTD::Cursor>(m_engine.NewCursor());
+		m_cursor = std::make_shared<TTD::Cursor>(m_engine.NewCursor());
 		
 		// Init cursor at the first position
 		m_cursor->SetPosition(m_engine.GetFirstPosition());

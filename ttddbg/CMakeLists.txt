@@ -15,6 +15,7 @@ set(ttddbg_STATIC_SRC
 	src/ttddbg_event_deque.cc
 	src/ttddbg_strings.cc
 	src/ttddbg_action.cc
+	src/ttddbg_position_chooser.cc
 )
 
 set(ttddbg_STATIC_INCLUDE
@@ -30,6 +31,7 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_event_deque.hh
 	include/ttddbg_strings.hh
 	include/ttddbg_action.hh
+	include/ttddbg_position_chooser.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})

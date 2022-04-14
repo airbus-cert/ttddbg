@@ -4,6 +4,7 @@
 #include <ida.hpp>
 #include <idp.hpp>
 #include "ttddbg_action.hh"
+#include "ttddbg_position_chooser.hh"
 
 namespace ttddbg 
 {
