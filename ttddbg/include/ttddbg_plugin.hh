@@ -19,7 +19,7 @@ namespace ttddbg
 			BackwardStateRequest::actionLabel,
 			&m_backwardAction,
 			this,
-			BackwardStateRequest::actionHotkey,
+			nullptr,
 			nullptr,
 			-1
 		);

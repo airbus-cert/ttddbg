@@ -24,6 +24,7 @@
 ttddbg::Plugin::Plugin()
 {
 	register_action(m_backwardActionDesc);
+	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
 }
 
 ttddbg::Plugin::~Plugin()
