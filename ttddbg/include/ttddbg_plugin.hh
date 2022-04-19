@@ -25,6 +25,17 @@ namespace ttddbg
 			-1
 		);
 
+		OpenPositionChooserAction m_positionChooserAction;
+		const action_desc_t m_positionChooserActionDesc = ACTION_DESC_LITERAL_PLUGMOD(
+			OpenPositionChooserAction::actionName,
+			OpenPositionChooserAction::actionLabel,
+			&m_positionChooserAction,
+			this,
+			nullptr,
+			nullptr,
+			-1
+		);
+
 	public:
 
 		explicit Plugin();

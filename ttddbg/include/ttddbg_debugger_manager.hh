@@ -58,9 +58,12 @@ namespace ttddbg
 		 */
 		PositionChooser *m_positionChooser;
 
+		TTD::Position m_nextPosition;
+
 		std::filesystem::path m_targetImagePath;
 
 		bool isTargetModule(const TTD::TTD_Replay_Module& module);
+		void populatePositionChooser();
 
 	public:
 		/*!
@@ -178,9 +181,20 @@ namespace ttddbg
 		 * \brief	Run steps and emit code for loaded and unloaded module
 		 * \param	steps	Number of steps to run -1 to run until next breakpoint
 		 */
-		void applyCursor(int steps);
+		void applyCursor(int steps = 0, TTD::Position newPos = { 0 });
 
 		void switchWay() override;
+		void openPositionChooser() override;
+		void setNextPosition(TTD::Position newPos) override;
+
+	private:
+		void moveCursorSteps(int steps);
+		void moveCursorPosition(TTD::Position newPos);
+
+		std::set<uint32_t> getCursorThreads();
+		std::set<TTD::TTD_Replay_Module*> getCursorModules();
+
+		void applyDifferences(std::set<uint32_t> threadsBefore, std::set<uint32_t> threadsAfter, std::set<TTD::TTD_Replay_Module*> modulesBefore, std::set<TTD::TTD_Replay_Module*> modulesAfter);
 	};
 }
 

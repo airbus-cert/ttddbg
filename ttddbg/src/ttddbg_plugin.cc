@@ -24,12 +24,15 @@
 ttddbg::Plugin::Plugin()
 {
 	register_action(m_backwardActionDesc);
+	register_action(m_positionChooserActionDesc);
 	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 }
 
 ttddbg::Plugin::~Plugin()
 {
 	unregister_action(m_backwardAction.actionName);
+	unregister_action(m_positionChooserAction.actionName);
 }
 
 /**********************************************************************/

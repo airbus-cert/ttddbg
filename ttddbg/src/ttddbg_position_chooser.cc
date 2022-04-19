@@ -1,13 +1,31 @@
 #include "ttddbg_position_chooser.hh"
+#include "ttddbg_debugger.hh"
+
+#include <dbg.hpp>
 
 namespace ttddbg {
-	PositionChooser::PositionChooser(std::shared_ptr<TTD::Cursor> cursor)
-		: chooser_t(0, 2, nullptr, new const char* [2]{"Name", "Position"}, "Position manager"), m_cursor(cursor)
+	PositionChooser::PositionChooser()
+		: chooser_t(CH_CAN_INS | CH_CAN_DEL, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr)
 	{
+	}
+
+	PositionChooser::PositionChooser(std::shared_ptr<TTD::Cursor> cursor) : PositionChooser() {
+		setCursor(cursor);
 	}
 
 	void PositionChooser::setCursor(std::shared_ptr<TTD::Cursor> cursor) {
 		m_cursor = cursor;
+	}
+
+	void PositionChooser::addNewPosition(std::string name, TTD::Position pos) {
+		std::pair<std::string, TTD::Position> new_pair;
+		new_pair.first = name;
+		new_pair.second = pos;
+		m_positions.push_back(new_pair);
+	}
+
+	bool PositionChooser::init() {
+		return true;
 	}
 
 	size_t PositionChooser::get_count() const {
@@ -25,12 +43,35 @@ namespace ttddbg {
 	}
 
 	ea_t PositionChooser::get_ea(size_t n) const {
+		if (n >= m_positions.size()) {
+			msg("[ttddbg] out-of-bounds for PositionChooser.get_ea(): asked for %d, max %d\n", n, m_positions.size());
+			return BADADDR;
+		}
+
+		auto pos = m_positions.at(n);
+		msg("[ttddbg] Moving to position \"%s\" at %d %d\n", pos.first.c_str(), pos.second.Major, pos.second.Minor);
+
+		static_cast<ttddbg::Debugger*>(dbg)->getManager().setNextPosition(pos.second);
+		continue_process();
 		return BADADDR;
 	}
 
+	void PositionChooser::closed() {
+
+	}
+
 	chooser_t::cbret_t PositionChooser::ins(ssize_t n) {
-		msg("[ttddbg] PositionChooser::ins()!\n");
-		return NOTHING_CHANGED;
+		qstring res;
+		bool ok = ask_str(&res, 0, "Name of the new position");
+
+		if (!ok) {
+			return NOTHING_CHANGED;
+		}
+		
+		std::pair<std::string, TTD::Position> new_pair;
+		addNewPosition(std::string(res.c_str()), *m_cursor.get()->GetPosition());
+
+		return ALL_CHANGED;
 	}
 
 	chooser_t::cbret_t PositionChooser::del(size_t n) {

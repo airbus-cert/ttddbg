@@ -4,6 +4,9 @@
 #include <ida.hpp>
 #include <idd.hpp>
 
+#include <Windows.h>
+#include "../../ttd-bindings/TTD/TTD.hpp"
+
 namespace ttddbg 
 {
 	/*!
@@ -118,10 +121,13 @@ namespace ttddbg
 		 */
 		virtual ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) = 0;
 
+		virtual void setNextPosition(TTD::Position) = 0;
+
 
 		virtual ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) = 0;
 		
 		virtual void switchWay() = 0;
+		virtual void openPositionChooser() = 0;
 	};
 }
 

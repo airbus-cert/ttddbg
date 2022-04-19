@@ -28,7 +28,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser())
+		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}
 	{
 	}
 
@@ -88,6 +88,10 @@ namespace ttddbg
 		m_resumeMode = resume_mode_t::RESMOD_NONE;
 
 		m_cursor = std::make_shared<TTD::Cursor>(m_engine.NewCursor());
+		m_positionChooser->setCursor(m_cursor);
+
+		// Populate position chooser (timeline)
+		populatePositionChooser();
 		
 		// Init cursor at the first position
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
@@ -184,6 +188,16 @@ namespace ttddbg
 	{
 		if (event->eid() == event_id_t::BREAKPOINT || event->eid() == event_id_t::STEP)
 		{
+			if (m_nextPosition.Major != 0 || m_nextPosition.Minor != 0) {
+				// Special case: instead of stepping or resuming, if there is a "next position" saved,
+				// go to this position instead
+				m_logger->info("special case: next position: ", m_nextPosition.Major, " ", m_nextPosition.Minor);
+				this->applyCursor(0, m_nextPosition);
+				m_events.addBreakPointEvent(1234, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
+				m_nextPosition = { 0 };
+				return DRC_OK;
+			}
+
 			switch (m_resumeMode)
 			{
 			case resume_mode_t::RESMOD_NONE:
@@ -303,20 +317,18 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	void DebuggerManager::applyCursor(int steps)
+	void DebuggerManager::applyCursor(int steps, TTD::Position newPos) {
+		if (steps != 0)
+			moveCursorSteps(steps);
+		else
+			moveCursorPosition(newPos);
+	}
+
+	void DebuggerManager::moveCursorSteps(int steps)
 	{
 		// compute current list of thread
-		std::set<uint32_t> threadBefore;
-		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
-		{
-			threadBefore.insert(m_cursor->GetThreadList()[i].info->threadid);
-		}
-
-		std::set<TTD::TTD_Replay_Module*> moduleBefore;
-		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
-		{
-			moduleBefore.insert(m_cursor->GetModuleList()[i].module);
-		}
+		std::set<uint32_t> threadBefore = getCursorThreads();
+		std::set<TTD::TTD_Replay_Module*> moduleBefore = getCursorModules();
 
 		TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
 		
@@ -329,32 +341,73 @@ namespace ttddbg
 			m_cursor->ReplayBackward(&replayrez, m_engine.GetFirstPosition(), steps);
 		}
 
-		std::set<uint32_t> threadAfter;
+		std::set<uint32_t> threadAfter = getCursorThreads();
+		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
+
+		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
+	}
+
+	void DebuggerManager::moveCursorPosition(TTD::Position newPos) {
+		std::set<uint32_t> threadBefore = getCursorThreads();
+		std::set<TTD::TTD_Replay_Module*> moduleBefore = getCursorModules();
+
+		TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
+
+		bool forward = true;
+		TTD::Position curPos = *m_cursor->GetPosition();
+		if (newPos.Major < curPos.Major) {
+			forward = false;
+		}
+		else if (newPos.Major == curPos.Major && newPos.Minor < curPos.Minor) {
+			forward = false;
+		}
+
+		if (forward) {
+			m_cursor->ReplayForward(&replayrez, &newPos, -1);
+		}
+		else {
+			m_cursor->ReplayBackward(&replayrez, &newPos, -1);
+		}
+
+		std::set<uint32_t> threadAfter = getCursorThreads();
+		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
+
+		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
+	}
+
+	std::set<uint32_t> DebuggerManager::getCursorThreads() {
+		std::set<uint32_t> threads;
 		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
 		{
-			threadAfter.insert(m_cursor->GetThreadList()[i].info->threadid);
+			threads.insert(m_cursor->GetThreadList()[i].info->threadid);
 		}
+		return threads;
+	}
 
-		std::set<TTD::TTD_Replay_Module*> moduleAfter;
+	std::set<TTD::TTD_Replay_Module*> DebuggerManager::getCursorModules() {
+		std::set<TTD::TTD_Replay_Module*> modules;
 		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
 		{
-			moduleAfter.insert(m_cursor->GetModuleList()[i].module);
+			modules.insert(m_cursor->GetModuleList()[i].module);
 		}
+		return modules;
+	}
 
+	void DebuggerManager::applyDifferences(std::set<uint32_t> threadBefore, std::set<uint32_t> threadAfter, std::set<TTD::TTD_Replay_Module*> moduleBefore, std::set<TTD::TTD_Replay_Module*> moduleAfter) {
 		// Check created and exited thread between two state
 		std::vector<uint32_t> threadExited, threadStarted;
 
 		std::set_difference(threadBefore.begin(), threadBefore.end(), threadAfter.begin(), threadAfter.end(), std::inserter(threadExited, threadExited.begin()));
 		std::set_difference(threadAfter.begin(), threadAfter.end(), threadBefore.begin(), threadBefore.end(), std::inserter(threadStarted, threadStarted.begin()));
 
-		std::for_each(threadExited.begin(), threadExited.end(), 
-			[this](uint32_t threadId) { 
-				m_events.addThreadExitEvent(1234, threadId); 
+		std::for_each(threadExited.begin(), threadExited.end(),
+			[this](uint32_t threadId) {
+				m_events.addThreadExitEvent(1234, threadId);
 			}
 		);
-		std::for_each(threadStarted.begin(), threadStarted.end(), 
-			[this](uint32_t threadId) { 
-				m_events.addThreadStartEvent(1234, threadId); 
+		std::for_each(threadStarted.begin(), threadStarted.end(),
+			[this](uint32_t threadId) {
+				m_events.addThreadStartEvent(1234, threadId);
 			}
 		);
 
@@ -364,23 +417,23 @@ namespace ttddbg
 		std::set_difference(moduleBefore.begin(), moduleBefore.end(), moduleAfter.begin(), moduleAfter.end(), std::inserter(moduleUnloaded, moduleUnloaded.begin()));
 		std::set_difference(moduleAfter.begin(), moduleAfter.end(), moduleBefore.begin(), moduleBefore.end(), std::inserter(moduleLoaded, moduleLoaded.begin()));
 
-		std::for_each(moduleUnloaded.begin(), moduleUnloaded.end(), 
-			[this](TTD::TTD_Replay_Module* module) { 
+		std::for_each(moduleUnloaded.begin(), moduleUnloaded.end(),
+			[this](TTD::TTD_Replay_Module* module) {
 				m_events.addLibUnloadEvent(
-					Strings::to_string(module->path), 
+					Strings::to_string(module->path),
 					module->base_addr
-				); 
+				);
 			}
 		);
-		
-		std::for_each(moduleLoaded.begin(), moduleLoaded.end(), 
-			[this](TTD::TTD_Replay_Module* module) {  
+
+		std::for_each(moduleLoaded.begin(), moduleLoaded.end(),
+			[this](TTD::TTD_Replay_Module* module) {
 				m_events.addLibLoadEvent(
-					Strings::to_string(module->path), 
-					module->base_addr, 
+					Strings::to_string(module->path),
+					module->base_addr,
 					isTargetModule(m_engine.GetModuleList()[0]) ? m_engine.GetModuleList()[0].base_addr : BADADDR,
 					module->imageSize
-				); 
+				);
 			}
 		);
 	}
@@ -389,5 +442,21 @@ namespace ttddbg
 	void DebuggerManager::switchWay()
 	{
 		m_isForward = !m_isForward;
+	}
+
+	void DebuggerManager::openPositionChooser() {
+		if (m_positionChooser != nullptr) {
+			m_positionChooser->choose();
+		}
+	}
+
+	void DebuggerManager::setNextPosition(TTD::Position newPos) {
+		m_nextPosition = newPos;
+	}
+
+	void DebuggerManager::populatePositionChooser() {
+		// TODO: use m_engine methods to add timeline positions for each:
+		// - Thread creation / exit
+		// - Module load / unload
 	}
 }

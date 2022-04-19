@@ -15,6 +15,16 @@ namespace ttddbg
 		virtual int idaapi activate(action_activation_ctx_t*) override;
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
+
+	struct OpenPositionChooserAction : public action_handler_t 
+	{
+		inline static const char* actionName = "ttddbg:ChoosePosition";
+		inline static const char* actionLabel = "Timeline";
+		//inline static const char* actionHotkey = "F3";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
 }
 
 #endif
