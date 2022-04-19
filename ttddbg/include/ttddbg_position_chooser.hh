@@ -28,8 +28,10 @@ namespace ttddbg {
 		cbret_t del(size_t) override;
 
 	private:
-		std::vector<std::pair<std::string, TTD::Position>> m_positions;
+		void savePositions() const;
+		void loadPositions();
 
+		std::vector<std::pair<std::string, TTD::Position>> m_positions;
 		std::shared_ptr<TTD::Cursor> m_cursor;
 	};
 }
