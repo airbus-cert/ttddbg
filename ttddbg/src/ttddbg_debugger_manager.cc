@@ -28,7 +28,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}
+		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}, m_processId(1234)
 	{
 	}
 
@@ -43,7 +43,7 @@ namespace ttddbg
 	{
 		process_info_t info;
 		info.name = "test";
-		info.pid = 1234;
+		info.pid = m_processId;
 		infos->push_back(info);
 		return DRC_OK;
 	}
@@ -97,7 +97,7 @@ namespace ttddbg
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
 
 		m_events.addProcessStartEvent(
-			1234,
+			m_processId,
 			m_cursor->GetThreadInfo()->threadid, 
 			Strings::to_string(m_engine.GetModuleList()[0].path), 
 			m_engine.GetModuleList()[0].base_addr,
@@ -108,7 +108,7 @@ namespace ttddbg
 		for (int i = 1; i < m_cursor->GetThreadCount(); i++)
 		{
 			auto threadId = m_cursor->GetThreadList()[i].info->threadid;
-			m_events.addThreadStartEvent(1234, threadId);
+			m_events.addThreadStartEvent(m_processId, threadId);
 		}
 
 		for (int i = 1; i < m_cursor->GetModuleCount(); i++)
@@ -123,7 +123,7 @@ namespace ttddbg
 		}
 
 		m_events.addBreakPointEvent(
-			1234,
+			m_processId,
 			m_cursor->GetThreadInfo()->threadid,
 			m_cursor->GetProgramCounter()
 		);
@@ -193,7 +193,7 @@ namespace ttddbg
 				// go to this position instead
 				m_logger->info("special case: next position: ", m_nextPosition.Major, " ", m_nextPosition.Minor);
 				this->applyCursor(0, m_nextPosition);
-				m_events.addBreakPointEvent(1234, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
+				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				m_nextPosition = { 0 };
 				return DRC_OK;
 			}
@@ -203,13 +203,13 @@ namespace ttddbg
 			case resume_mode_t::RESMOD_NONE:
 			{
 				this->applyCursor(-1);
-				m_events.addBreakPointEvent(1234, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
+				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				break;
 			}
 			case resume_mode_t::RESMOD_INTO:
 			{
 				this->applyCursor(1);
-				m_events.addStepEvent(1234, m_cursor->GetThreadInfo()[0].threadid);
+				m_events.addStepEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid);
 				break;
 			}
 			default:
@@ -257,7 +257,7 @@ namespace ttddbg
 	/**********************************************************************/
 	ssize_t DebuggerManager::onExitProcess(qstring* errbuf)
 	{
-		m_events.addProcessExitEvent(1234);
+		m_events.addProcessExitEvent(m_processId);
 		return DRC_OK;
 	}
 
@@ -402,12 +402,12 @@ namespace ttddbg
 
 		std::for_each(threadExited.begin(), threadExited.end(),
 			[this](uint32_t threadId) {
-				m_events.addThreadExitEvent(1234, threadId);
+				m_events.addThreadExitEvent(m_processId, threadId);
 			}
 		);
 		std::for_each(threadStarted.begin(), threadStarted.end(),
 			[this](uint32_t threadId) {
-				m_events.addThreadStartEvent(1234, threadId);
+				m_events.addThreadStartEvent(m_processId, threadId);
 			}
 		);
 

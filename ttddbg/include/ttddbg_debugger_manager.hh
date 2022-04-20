@@ -60,6 +60,8 @@ namespace ttddbg
 
 		TTD::Position m_nextPosition;
 
+		pid_t m_processId;
+
 		std::filesystem::path m_targetImagePath;
 
 		bool isTargetModule(const TTD::TTD_Replay_Module& module);
