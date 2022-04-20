@@ -16,6 +16,16 @@ namespace ttddbg
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
 
+	struct BackwardSingleStepRequest : public action_handler_t
+	{
+		inline static const char* actionName = "ttddbg:BackwardSingle";
+		inline static const char* actionLabel = "Single-step backwards";
+		inline static const char* actionHotkey = "Ctrl+F8";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
+
 	struct OpenPositionChooserAction : public action_handler_t 
 	{
 		inline static const char* actionName = "ttddbg:ChoosePosition";

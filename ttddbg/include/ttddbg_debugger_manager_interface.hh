@@ -127,6 +127,7 @@ namespace ttddbg
 		virtual ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) = 0;
 		
 		virtual void switchWay() = 0;
+		virtual void requestBackwardsSingleStep() = 0;
 		virtual void openPositionChooser() = 0;
 	};
 }

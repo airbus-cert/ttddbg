@@ -36,6 +36,17 @@ namespace ttddbg
 			-1
 		);
 
+		BackwardSingleStepRequest m_backwardSingleAction;
+		const action_desc_t m_backwardSingleActionDesc = ACTION_DESC_LITERAL_PLUGMOD(
+			BackwardSingleStepRequest::actionName,
+			BackwardSingleStepRequest::actionLabel,
+			&m_backwardSingleAction,
+			this,
+			nullptr,
+			nullptr,
+			-1
+		);
+
 	public:
 
 		explicit Plugin();

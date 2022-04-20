@@ -59,6 +59,7 @@ namespace ttddbg
 		PositionChooser *m_positionChooser;
 
 		TTD::Position m_nextPosition;
+		bool m_backwardsSingleStep;	
 
 		pid_t m_processId;
 
@@ -186,6 +187,7 @@ namespace ttddbg
 		void applyCursor(int steps = 0, TTD::Position newPos = { 0 });
 
 		void switchWay() override;
+		void requestBackwardsSingleStep() override;
 		void openPositionChooser() override;
 		void setNextPosition(TTD::Position newPos) override;
 

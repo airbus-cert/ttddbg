@@ -28,7 +28,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}, m_processId(1234)
+		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false)
 	{
 	}
 
@@ -195,6 +195,22 @@ namespace ttddbg
 				this->applyCursor(0, m_nextPosition);
 				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				m_nextPosition = { 0 };
+				return DRC_OK;
+			}
+
+			if (m_backwardsSingleStep) {
+				// Special case: if "m_backwardsSingleStep" is true, simulate a "single-step"
+				// back in time: we force m_isForward to false and "applyCursor(1)", which effectively
+				// moves back in time of 1 unit
+				bool old_isForward = m_isForward;
+				m_isForward = false;
+				applyCursor(1);
+				m_isForward = old_isForward;
+
+				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
+
+				m_backwardsSingleStep = false;
+
 				return DRC_OK;
 			}
 
@@ -444,6 +460,11 @@ namespace ttddbg
 		m_isForward = !m_isForward;
 	}
 
+	void DebuggerManager::requestBackwardsSingleStep()
+	{
+		m_backwardsSingleStep = true;
+	}
+
 	void DebuggerManager::openPositionChooser() {
 		if (m_positionChooser != nullptr) {
 			m_positionChooser->choose();
@@ -458,5 +479,11 @@ namespace ttddbg
 		// TODO: use m_engine methods to add timeline positions for each:
 		// - Thread creation / exit
 		// - Module load / unload
+
+		if (m_positionChooser->get_count() > 0) {
+			// If the position count is > 0 even before populating, it means that
+			// a list of positions was already loaded. In this case, we do not populate it further.
+			return;
+		}
 	}
 }
