@@ -20,7 +20,7 @@
 #include "ttddbg_logger_ida.hh"
 #include "ttddbg_debugger_manager.hh"
 
-
+/**********************************************************************/
 ttddbg::Plugin::Plugin()
 {
 	register_action(m_backwardActionDesc);
@@ -31,6 +31,7 @@ ttddbg::Plugin::Plugin()
 	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 }
 
+/**********************************************************************/
 ttddbg::Plugin::~Plugin()
 {
 	unregister_action(m_backwardAction.actionName);
@@ -60,6 +61,7 @@ static plugmod_t* idaapi ttddbg_init(void)
 	}
 }
 
+/**********************************************************************/
 /*!
  * \brief	This is an export present into loader.hpp of IDA SDK
  */

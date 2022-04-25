@@ -7,13 +7,14 @@
 #include <kernwin.hpp>
 
 #include <Windows.h>
+#include "ttddbg_logger.hh"
 #include "../../ttd-bindings/TTD/TTD.hpp"
 
 namespace ttddbg {
 	class PositionChooser : public chooser_t {
 	public:
-		PositionChooser();
-		PositionChooser(std::shared_ptr<TTD::Cursor>);
+		PositionChooser(std::shared_ptr<Logger> logger);
+		PositionChooser(std::shared_ptr<TTD::Cursor>, std::shared_ptr<Logger> logger);
 
 		void setCursor(std::shared_ptr<TTD::Cursor>);
 		void addNewPosition(std::string name, TTD::Position pos);
@@ -33,5 +34,6 @@ namespace ttddbg {
 
 		std::vector<std::pair<std::string, TTD::Position>> m_positions;
 		std::shared_ptr<TTD::Cursor> m_cursor;
+		std::shared_ptr<Logger> m_logger;
 	};
 }

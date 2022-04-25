@@ -4,6 +4,7 @@
 
 namespace ttddbg
 {
+	/**********************************************************************/
 	int idaapi ttddbg::BackwardStateRequest::activate(action_activation_ctx_t*)
 	{
 		if (dbg != nullptr)
@@ -15,12 +16,13 @@ namespace ttddbg
 		return false;
 	}
 
+	/**********************************************************************/
 	action_state_t idaapi ttddbg::BackwardStateRequest::update(action_update_ctx_t*)
 	{
 		return AST_ENABLE_ALWAYS;
 	}
 
-	/////////////////////////////////////////////////////////////////////
+	/**********************************************************************/
 	int idaapi ttddbg::BackwardSingleStepRequest::activate(action_activation_ctx_t*)
 	{
 		if (dbg != nullptr)
@@ -31,12 +33,13 @@ namespace ttddbg
 		return false;
 	}
 
+	/**********************************************************************/
 	action_state_t idaapi ttddbg::BackwardSingleStepRequest::update(action_update_ctx_t*)
 	{
 		return AST_ENABLE_ALWAYS;
 	}
 
-	/////////////////////////////////////////////////////////////////////
+	/**********************************************************************/
 	int idaapi ttddbg::OpenPositionChooserAction::activate(action_activation_ctx_t*) {
 		if (dbg != nullptr)
 		{
@@ -45,6 +48,7 @@ namespace ttddbg
 		return false;
 	}
 
+	/**********************************************************************/
 	action_state_t idaapi ttddbg::OpenPositionChooserAction::update(action_update_ctx_t*) {
 		return AST_ENABLE_ALWAYS;
 	}
