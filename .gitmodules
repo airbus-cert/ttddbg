@@ -1,3 +1,4 @@
 [submodule "ttd-bindings"]
 	path = ttd-bindings
-	url = git@github.com:commial/ttd-bindings.git
+	url = git@github.com:airbus-cert/ttd-bindings
+	branch = event_api
