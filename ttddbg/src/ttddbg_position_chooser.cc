@@ -4,20 +4,25 @@
 #include <dbg.hpp>
 
 namespace ttddbg {
-	PositionChooser::PositionChooser()
-		: chooser_t(CH_CAN_INS | CH_CAN_DEL, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr)
+
+	/**********************************************************************/
+	PositionChooser::PositionChooser(std::shared_ptr<Logger> logger)
+		: chooser_t(CH_CAN_INS | CH_CAN_DEL, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr), m_logger{ logger }
 	{
 		loadPositions();
 	}
 
-	PositionChooser::PositionChooser(std::shared_ptr<TTD::Cursor> cursor) : PositionChooser() {
+	/**********************************************************************/
+	PositionChooser::PositionChooser(std::shared_ptr<TTD::Cursor> cursor, std::shared_ptr<Logger> logger) : PositionChooser(logger) {
 		setCursor(cursor);
 	}
 
+	/**********************************************************************/
 	void PositionChooser::setCursor(std::shared_ptr<TTD::Cursor> cursor) {
 		m_cursor = cursor;
 	}
 
+	/**********************************************************************/
 	void PositionChooser::addNewPosition(std::string name, TTD::Position pos) {
 		std::pair<std::string, TTD::Position> new_pair;
 		new_pair.first = name;
@@ -27,14 +32,17 @@ namespace ttddbg {
 		savePositions();
 	}
 
+	/**********************************************************************/
 	bool PositionChooser::init() {
 		return true;
 	}
 
+	/**********************************************************************/
 	size_t PositionChooser::get_count() const {
 		return m_positions.size();
 	}
 
+	/**********************************************************************/
 	void PositionChooser::get_row(qstrvec_t* out, int* out_icon, chooser_item_attrs_t* out_attrs, size_t n) const {
 		auto &entry = m_positions.at(n);
 
@@ -42,24 +50,26 @@ namespace ttddbg {
 		out->at(1).sprnt("%d %d", entry.second.Major, entry.second.Minor);
 	}
 
+	/**********************************************************************/
 	ea_t PositionChooser::get_ea(size_t n) const {
 		if (n >= m_positions.size()) {
-			msg("[ttddbg] out-of-bounds for PositionChooser.get_ea(): asked for %d, max %d\n", n, m_positions.size());
+			m_logger->info("out-of-bounds for PositionChooser.get_ea(): asked for ", n, ", max", m_positions.size());
 			return BADADDR;
 		}
 
 		auto pos = m_positions.at(n);
-		msg("[ttddbg] Moving to position \"%s\" at %d %d\n", pos.first.c_str(), pos.second.Major, pos.second.Minor);
-
+		m_logger->info("Moving to position ", pos.first.c_str(), " at ", pos.second.Major, " ", pos.second.Minor);
 		static_cast<ttddbg::Debugger*>(dbg)->getManager().setNextPosition(pos.second);
 		continue_process();
 		return BADADDR;
 	}
 
+	/**********************************************************************/
 	void PositionChooser::closed() {
 
 	}
 
+	/**********************************************************************/
 	chooser_t::cbret_t PositionChooser::ins(ssize_t n) {
 		qstring res;
 		bool ok = ask_str(&res, 0, "Name of the new position");
@@ -74,9 +84,10 @@ namespace ttddbg {
 		return ALL_CHANGED;
 	}
 
+	/**********************************************************************/
 	chooser_t::cbret_t PositionChooser::del(size_t n) {
 		if (n >= m_positions.size()) {
-			msg("[ttddbg] out-of-bounds when del()eting pos: %d (max %d)\n", n, m_positions.size());
+			m_logger->info("out-of-bounds when del()eting pos: ", n, "max ", m_positions.size());
 			return NOTHING_CHANGED;
 		}
 
@@ -89,6 +100,7 @@ namespace ttddbg {
 		return ALL_CHANGED;
 	}
 
+	/**********************************************************************/
 	void PositionChooser::savePositions() const {
 		std::for_each(m_positions.begin(), m_positions.end(),
 			[](std::pair<std::string, TTD::Position> pair) {
@@ -104,6 +116,7 @@ namespace ttddbg {
 		);
 	}
 
+	/**********************************************************************/
 	void PositionChooser::loadPositions() {
 		netnode n;
 		qstring nodename;
@@ -125,7 +138,7 @@ namespace ttddbg {
 				continue;
 			}
 
-			msg("[ttddbg] loaded position \"%s\"\n", posname.c_str());
+			m_logger->info("loaded position ", posname.c_str());
 
 			m_positions.push_back(std::pair<std::string, TTD::Position>(std::string(posname.c_str()), pos));
 		}

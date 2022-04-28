@@ -28,7 +28,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false)
+		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false)
 	{
 	}
 
@@ -340,6 +340,7 @@ namespace ttddbg
 			moveCursorPosition(newPos);
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::moveCursorSteps(int steps)
 	{
 		// compute current list of thread
@@ -363,6 +364,7 @@ namespace ttddbg
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::moveCursorPosition(TTD::Position newPos) {
 		std::set<uint32_t> threadBefore = getCursorThreads();
 		std::set<TTD::TTD_Replay_Module*> moduleBefore = getCursorModules();
@@ -391,6 +393,7 @@ namespace ttddbg
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
 	}
 
+	/**********************************************************************/
 	std::set<uint32_t> DebuggerManager::getCursorThreads() {
 		std::set<uint32_t> threads;
 		for (int i = 0; i < m_cursor->GetThreadCount(); i++)
@@ -400,6 +403,7 @@ namespace ttddbg
 		return threads;
 	}
 
+	/**********************************************************************/
 	std::set<TTD::TTD_Replay_Module*> DebuggerManager::getCursorModules() {
 		std::set<TTD::TTD_Replay_Module*> modules;
 		for (int i = 0; i < m_cursor->GetModuleCount(); i++)
@@ -409,6 +413,7 @@ namespace ttddbg
 		return modules;
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::applyDifferences(std::set<uint32_t> threadBefore, std::set<uint32_t> threadAfter, std::set<TTD::TTD_Replay_Module*> moduleBefore, std::set<TTD::TTD_Replay_Module*> moduleAfter) {
 		// Check created and exited thread between two state
 		std::vector<uint32_t> threadExited, threadStarted;
@@ -460,21 +465,25 @@ namespace ttddbg
 		m_isForward = !m_isForward;
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::requestBackwardsSingleStep()
 	{
 		m_backwardsSingleStep = true;
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::openPositionChooser() {
 		if (m_positionChooser != nullptr) {
 			m_positionChooser->choose();
 		}
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::setNextPosition(TTD::Position newPos) {
 		m_nextPosition = newPos;
 	}
 
+	/**********************************************************************/
 	void DebuggerManager::populatePositionChooser() {
 		// TODO: use m_engine methods to add timeline positions for each:
 		// - Thread creation / exit
