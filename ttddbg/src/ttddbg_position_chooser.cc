@@ -32,13 +32,10 @@ namespace ttddbg {
 	}
 
 	size_t PositionChooser::get_count() const {
-		msg("[ttddbg] get_count() = %d\n", m_positions.size());
 		return m_positions.size();
 	}
 
 	void PositionChooser::get_row(qstrvec_t* out, int* out_icon, chooser_item_attrs_t* out_attrs, size_t n) const {
-		msg("[ttddbg] get_count(%d)\n", n);
-
 		auto &entry = m_positions.at(n);
 
 		out->at(0).sprnt(entry.first.c_str());
