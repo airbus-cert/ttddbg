@@ -22,7 +22,7 @@ namespace ttddbg
 			this,
 			nullptr,
 			nullptr,
-			-1
+			212
 		);
 
 		OpenPositionChooserAction m_positionChooserAction;
@@ -33,7 +33,7 @@ namespace ttddbg
 			this,
 			nullptr,
 			nullptr,
-			-1
+			185
 		);
 
 		BackwardSingleStepRequest m_backwardSingleAction;
