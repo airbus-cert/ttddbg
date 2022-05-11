@@ -494,5 +494,63 @@ namespace ttddbg
 			// a list of positions was already loaded. In this case, we do not populate it further.
 			return;
 		}
+
+		auto threadCreatedEvents = m_engine.GetThreadCreatedEvent();
+		auto threadExitedEvents = m_engine.GetThreadTerminatedEvent();
+		auto moduleLoadedEvents = m_engine.GetModuleLoadedEvent();
+		auto moduleUnloadedEvents = m_engine.GetModuleUnloadedEvent();
+
+		auto itModuleLoaded = moduleLoadedEvents.begin();
+		auto itModuleUnloaded = moduleUnloadedEvents.begin();
+		auto itThreadCreate = threadCreatedEvents.begin();
+		auto itThreadTerminate = threadExitedEvents.begin();
+
+		std::ostringstream oss;
+		TTD::Position pos = {0};
+
+		while (itModuleLoaded != moduleLoadedEvents.end() || itModuleUnloaded != moduleUnloadedEvents.end() || itThreadCreate != threadCreatedEvents.end() || itThreadTerminate != threadExitedEvents.end())
+		{
+			// For each iterator, get the current event position
+			TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoadedEvents.end()) ? TTD::MAX : itModuleLoaded->pos;
+			TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloadedEvents.end()) ? TTD::MAX : itModuleUnloaded->pos;
+			TTD::Position threadCreatePosition = (itThreadCreate == threadCreatedEvents.end()) ? TTD::MAX : itThreadCreate->pos;
+			TTD::Position threadTerminatePosition = (itThreadTerminate == threadExitedEvents.end()) ? TTD::MAX : itThreadTerminate->pos;
+
+			// Now, we look for the smallest position and add the event to the timeline
+			// This way, we add the events in the order they happen
+			oss.str("");
+
+			if (moduleLoadedPosition < moduleUnloadedPosition && moduleLoadedPosition < threadCreatePosition && moduleLoadedPosition < threadTerminatePosition)
+			{
+				oss << "Module loaded: " << Strings::to_string(itModuleLoaded->info->path);
+				pos = moduleLoadedPosition;
+				itModuleLoaded++;
+			}
+			else if (moduleUnloadedPosition < moduleLoadedPosition && moduleUnloadedPosition < threadCreatePosition && moduleUnloadedPosition < threadTerminatePosition)
+			{
+				oss << "Module unloaded: " << Strings::to_string(itModuleUnloaded->info->path);
+				pos = moduleUnloadedPosition;
+				itModuleUnloaded++;
+			}
+			else if (threadCreatePosition < moduleLoadedPosition && threadCreatePosition < moduleLoadedPosition && threadCreatePosition < threadTerminatePosition)
+			{
+				oss << "Thread created: " << itThreadCreate->info->threadid;
+				pos = threadCreatePosition;
+				itThreadCreate++;
+			}
+			else if (threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < threadCreatePosition)
+			{
+				oss << "Thread exited: " << itThreadTerminate->info->threadid;
+				pos = threadTerminatePosition;
+				itThreadTerminate++;
+			}
+			else
+			{
+				oss << "Unknown iterator";
+				pos = { 0 };
+			}
+
+			m_positionChooser->addNewPosition(oss.str(), pos);
+		}
 	}
 }
