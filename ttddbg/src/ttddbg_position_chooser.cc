@@ -7,7 +7,7 @@ namespace ttddbg {
 
 	/**********************************************************************/
 	PositionChooser::PositionChooser(std::shared_ptr<Logger> logger)
-		: chooser_t(CH_CAN_INS | CH_CAN_DEL, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr), m_logger{ logger }
+		: chooser_t(CH_CAN_INS | CH_CAN_DEL | CH_KEEP, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr), m_logger{ logger },m_isClosed(true)
 	{
 		loadPositions();
 	}
@@ -30,6 +30,20 @@ namespace ttddbg {
 		m_positions.push_back(new_pair);
 
 		savePositions();
+	}
+
+	/**********************************************************************/
+	bool PositionChooser::isClosed() {
+		return m_isClosed;
+	}
+
+	/**********************************************************************/
+	ssize_t PositionChooser::choose(ssize_t d) {
+		if (isClosed()) {
+			m_isClosed = false;
+			return chooser_t::choose(d);
+		}
+		return 0;
 	}
 
 	/**********************************************************************/
@@ -66,7 +80,7 @@ namespace ttddbg {
 
 	/**********************************************************************/
 	void PositionChooser::closed() {
-
+		m_isClosed = true;
 	}
 
 	/**********************************************************************/

@@ -18,6 +18,8 @@ namespace ttddbg {
 
 		void setCursor(std::shared_ptr<TTD::Cursor>);
 		void addNewPosition(std::string name, TTD::Position pos);
+
+		bool isClosed();
 		
 		// Overrides
 		bool init() override;
@@ -27,6 +29,7 @@ namespace ttddbg {
 		void closed() override;
 		cbret_t ins(ssize_t) override;
 		cbret_t del(size_t) override;
+		ssize_t choose(ssize_t = 0);
 
 	private:
 		void savePositions() const;
@@ -35,5 +38,7 @@ namespace ttddbg {
 		std::vector<std::pair<std::string, TTD::Position>> m_positions;
 		std::shared_ptr<TTD::Cursor> m_cursor;
 		std::shared_ptr<Logger> m_logger;
+
+		bool m_isClosed;
 	};
 }
