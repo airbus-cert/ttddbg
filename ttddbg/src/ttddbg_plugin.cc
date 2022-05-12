@@ -18,7 +18,8 @@
 #include "ttddbg_debugger.hh"
 #include "ttddbg_plugin.hh"
 #include "ttddbg_logger_ida.hh"
-#include "ttddbg_debugger_manager.hh"
+#include "ttddbg_debugger_x86.hh"
+#include "ttddbg_debugger_x86_64.hh"
 
 /**********************************************************************/
 ttddbg::Plugin::Plugin()
@@ -50,8 +51,14 @@ static plugmod_t* idaapi ttddbg_init(void)
 	auto logger = std::make_shared<ttddbg::IdaLogger>();
 	try
 	{
-		auto manager = std::make_unique<ttddbg::DebuggerManager>(logger);
-		dbg = new ttddbg::Debugger(logger, std::move(manager));
+		if (inf_is_64bit())
+		{
+			dbg = new ttddbg::DebuggerX86_64(logger);
+		}
+		else
+		{
+			dbg = new ttddbg::DebuggerX86(logger);
+		}
 		return new ttddbg::Plugin();
 	}
 	catch (std::exception& e)

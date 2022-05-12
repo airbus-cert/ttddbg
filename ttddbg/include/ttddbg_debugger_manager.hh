@@ -15,13 +15,29 @@ namespace ttddbg
 {
 	/*!
 	 * \brief	Main implementation of the Time Travel debugger
-	 *			Automato for IDA
+	 *			Automata for IDA
 	 */
 	class DebuggerManager : public IDebuggerManager
 	{
 		friend PositionChooser;
 
+	public:
+		/*!
+		 *	\brief size of architecture
+		 */
+		enum Arch
+		{
+			ARCH_32_BITS = 4,
+			ARCH_64_BITS = 8
+		};
+
 	protected:
+
+		/*!
+		 * \brief	Current debugger architecture
+		 */
+		Arch	m_arch;
+
 		/*!
 		 * \brief	Time travel debugger interface
 		 */
@@ -69,11 +85,12 @@ namespace ttddbg
 		void populatePositionChooser();
 
 	public:
+
 		/*!
 		 * \brief	ctor
 		 * \param	logger	logger use to print message
 		 */
-		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger);
+		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger, Arch arch);
 
 		/*!
 		 * \brief	First state of the automata
@@ -145,15 +162,6 @@ namespace ttddbg
 		ssize_t onResume(debug_event_t* event) override;
 
 		/*!
-		 * \brief	use to inform the debugger to read register state
-		 * \param	tid	thread id
-		 * \param	clsmask	class mask (for xample x86 class mask)
-		 * \param	values	output register state, follow declaration of the debugger
-		 * \param	errbuf	buffer error to inform state
-		 */
-		ssize_t onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf) override;
-
-		/*!
 		 * \brief	Inform the backend that the debugger is in the suspended state
 		 * \param	dllsAdded	boolean inform that new dll has been added
 		 * \param	thrNames	current thread 
@@ -184,7 +192,13 @@ namespace ttddbg
 		 * \brief	Run steps and emit code for loaded and unloaded module
 		 * \param	steps	Number of steps to run -1 to run until next breakpoint
 		 */
-		void applyCursor(int steps = 0, TTD::Position newPos = { 0 });
+		void applyCursor(int steps);
+
+		/*!
+		 * \brief run the cursor directly at a special positon
+		 * \param	newPos	target position
+		 */
+		void applyCursor(TTD::Position newPos);
 
 		void switchWay() override;
 		void requestBackwardsSingleStep() override;
@@ -192,8 +206,6 @@ namespace ttddbg
 		void setNextPosition(TTD::Position newPos) override;
 
 	private:
-		void moveCursorSteps(int steps);
-		void moveCursorPosition(TTD::Position newPos);
 
 		std::set<uint32_t> getCursorThreads();
 		std::set<TTD::TTD_Replay_Module*> getCursorModules();

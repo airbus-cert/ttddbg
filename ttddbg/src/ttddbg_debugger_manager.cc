@@ -27,8 +27,8 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger)
-		: m_logger(logger), m_isForward { true }, m_resumeMode { resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false)
+	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false)
 	{
 	}
 
@@ -158,7 +158,7 @@ namespace ttddbg
 		memory_info_t other;
 		other.start_ea = 0;
 		other.end_ea = (ea_t)0x7FFFFFFFFFFF; // Userland process on windows
-		other.bitness = 2;
+		other.bitness = (m_arch == ARCH_64_BITS)?2:1;
 		infos->push_back(other);
 		return DRC_OK;
 	}
@@ -238,33 +238,6 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	ssize_t DebuggerManager::onReadRegisters(thid_t tid, int clsmask, regval_t* values, qstring* errbuf)
-	{
-		auto threadInfo = m_cursor->GetCrossPlatformContext(tid);
-
-		values[0].ival = threadInfo->rax;
-		values[1].ival = threadInfo->rcx;
-		values[2].ival = threadInfo->rdx;
-		values[3].ival = threadInfo->rbx;
-		values[4].ival = threadInfo->rsp;
-		values[5].ival = threadInfo->rbp;
-		values[6].ival = threadInfo->rsi;
-		values[7].ival = threadInfo->rdi;
-		values[8].ival = threadInfo->r8;
-		values[9].ival = threadInfo->r9;
-		values[10].ival = threadInfo->r10;
-		values[11].ival = threadInfo->r11;
-		values[12].ival = threadInfo->r12;
-		values[13].ival = threadInfo->r13;
-		values[14].ival = threadInfo->r14;
-		values[15].ival = threadInfo->r15;
-		values[16].ival = threadInfo->rip;
-		values[17].ival = threadInfo->efl;
-		
-		return DRC_OK;
-	}
-
-	/**********************************************************************/
 	ssize_t DebuggerManager::onSuspended(bool dllsAdded, thread_name_vec_t* thrNames)
 	{
 		return DRC_OK;
@@ -301,7 +274,7 @@ namespace ttddbg
 		{
 			TTD::TTD_Replay_MemoryWatchpointData data;
 			data.addr = bpts[i].ea;
-			data.size = 8;
+			data.size = m_arch;
 			data.flags = TTD::BP_FLAGS::EXEC;
 			m_cursor->AddMemoryWatchpoint(&data);
 			(*nbpts)++;
@@ -311,7 +284,7 @@ namespace ttddbg
 		{
 			TTD::TTD_Replay_MemoryWatchpointData data;
 			data.addr = bpts[i].ea;
-			data.size = 8;
+			data.size = m_arch;
 			data.flags = TTD::BP_FLAGS::EXEC;
 			m_cursor->RemoveMemoryWatchpoint(&data);
 			(*nbpts)++;
@@ -338,10 +311,12 @@ namespace ttddbg
 			moveCursorSteps(steps);
 		else
 			moveCursorPosition(newPos);
+
+		
 	}
 
 	/**********************************************************************/
-	void DebuggerManager::moveCursorSteps(int steps)
+	void DebuggerManager::applyCursor(int steps)
 	{
 		// compute current list of thread
 		std::set<uint32_t> threadBefore = getCursorThreads();
@@ -362,35 +337,23 @@ namespace ttddbg
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
+
+		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
-	void DebuggerManager::moveCursorPosition(TTD::Position newPos) {
+	void DebuggerManager::applyCursor(TTD::Position newPos) {
 		std::set<uint32_t> threadBefore = getCursorThreads();
 		std::set<TTD::TTD_Replay_Module*> moduleBefore = getCursorModules();
 
-		TTD::TTD_Replay_ICursorView_ReplayResult replayrez;
-
-		bool forward = true;
-		TTD::Position curPos = *m_cursor->GetPosition();
-		if (newPos.Major < curPos.Major) {
-			forward = false;
-		}
-		else if (newPos.Major == curPos.Major && newPos.Minor < curPos.Minor) {
-			forward = false;
-		}
-
-		if (forward) {
-			m_cursor->ReplayForward(&replayrez, &newPos, -1);
-		}
-		else {
-			m_cursor->ReplayBackward(&replayrez, &newPos, -1);
-		}
+		m_cursor->SetPosition(&newPos);
 
 		std::set<uint32_t> threadAfter = getCursorThreads();
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
+
+		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
@@ -415,7 +378,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	void DebuggerManager::applyDifferences(std::set<uint32_t> threadBefore, std::set<uint32_t> threadAfter, std::set<TTD::TTD_Replay_Module*> moduleBefore, std::set<TTD::TTD_Replay_Module*> moduleAfter) {
-		// Check created and exited thread between two state
+		// Check created and exited thread between two states
 		std::vector<uint32_t> threadExited, threadStarted;
 
 		std::set_difference(threadBefore.begin(), threadBefore.end(), threadAfter.begin(), threadAfter.end(), std::inserter(threadExited, threadExited.begin()));

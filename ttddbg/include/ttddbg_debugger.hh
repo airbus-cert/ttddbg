@@ -35,13 +35,12 @@ namespace ttddbg
 		/*!
 		 * \brief	ctor
 		 * \param	logger	logger interface to print informations messages
-		 * \param	mnager	debugger automata
+		 * \param	manager	debugger automata
 		 */
 		explicit Debugger(std::shared_ptr<ttddbg::Logger> logger, std::unique_ptr<IDebuggerManager>&& manager);
 
 		/*!
-		 * \brief	Use to change the way of the dubugger
-		 *			We are a time travel debugger !!!
+		 * \brief	Retrieve the manager for 
 		 */
 		IDebuggerManager& getManager();
 	};
