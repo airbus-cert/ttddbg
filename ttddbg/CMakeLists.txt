@@ -10,6 +10,8 @@ set(ttddbg_STATIC_SRC
 	../ttd-bindings/TTD/utils.cpp
 	src/ttddbg_plugin.cc
 	src/ttddbg_debugger.cc
+	src/ttddbg_debugger_x86.cc
+	src/ttddbg_debugger_x86_64.cc
 	src/ttddbg_debugger_manager.cc
 	src/ttddbg_logger_ida.cc
 	src/ttddbg_event_deque.cc
@@ -23,6 +25,8 @@ set(ttddbg_STATIC_INCLUDE
 	../ttd-bindings/TTD/sha256.h
 	../ttd-bindings/TTD/utils.h
 	include/ttddbg_debugger.hh
+	include/ttddbg_debugger_x86.hh
+	include/ttddbg_debugger_x86_64.hh
 	include/ttddbg_debugger_manager_interface.hh
 	include/ttddbg_debugger_manager.hh
 	include/ttddbg_plugin.hh
@@ -32,6 +36,7 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_strings.hh
 	include/ttddbg_action.hh
 	include/ttddbg_position_chooser.hh
+	include/ttddbg_x86_registers.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})
