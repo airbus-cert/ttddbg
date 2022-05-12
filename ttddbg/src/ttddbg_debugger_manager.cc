@@ -192,7 +192,7 @@ namespace ttddbg
 				// Special case: instead of stepping or resuming, if there is a "next position" saved,
 				// go to this position instead
 				m_logger->info("special case: next position: ", m_nextPosition.Major, " ", m_nextPosition.Minor);
-				this->applyCursor(0, m_nextPosition);
+				this->applyCursor(m_nextPosition);
 				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				m_nextPosition = { 0 };
 				return DRC_OK;
@@ -303,16 +303,6 @@ namespace ttddbg
 	ssize_t DebuggerManager::onUpdateCallStack(thid_t tid, call_stack_t* trace)
 	{
 		return DRC_NONE;
-	}
-
-	/**********************************************************************/
-	void DebuggerManager::applyCursor(int steps, TTD::Position newPos) {
-		if (steps != 0)
-			moveCursorSteps(steps);
-		else
-			moveCursorPosition(newPos);
-
-		
 	}
 
 	/**********************************************************************/
