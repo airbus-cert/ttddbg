@@ -22,6 +22,8 @@ namespace ttddbg
 		std::string tmpString("", stringSize + 1);
 		size_t tmp;
 		wcstombs_s(&tmp, &tmpString[0], stringSize + 1, cStr, stringSize);
+		// remove las \0 char
+		tmpString.resize(stringSize);
 		return tmpString;
 	}
 

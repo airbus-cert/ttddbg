@@ -10,6 +10,26 @@
 namespace ttddbg
 {
 	/**********************************************************************/
+	static int from_idabptype(bpttype_t bp_type)
+	{
+		switch (bp_type)
+		{
+		case BPT_WRITE:
+			return TTD::BP_FLAGS::WRITE;
+		case BPT_READ:
+			return TTD::BP_FLAGS::READ;
+		case BPT_RDWR:
+			return TTD::BP_FLAGS::READ | TTD::BP_FLAGS::READ;
+		case BPT_EXEC:
+			return TTD::BP_FLAGS::EXEC;
+		case BPT_DEFAULT:
+			return TTD::BP_FLAGS::EXEC;
+		default:
+			return TTD::BP_FLAGS::EXEC;
+		} 
+	}
+
+	/**********************************************************************/
 	bool DebuggerManager::isTargetModule(const TTD::TTD_Replay_Module& module)
 	{
 		if (m_targetImagePath.string() == Strings::to_string(module.path))
@@ -52,6 +72,7 @@ namespace ttddbg
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
 	{	
 		m_isForward = true;
+		m_targetImagePath = input_path;
 
 		// check if the file exist
 		if (!std::filesystem::exists(path))
@@ -104,6 +125,27 @@ namespace ttddbg
 			isTargetModule(m_engine.GetModuleList()[0]) ? m_engine.GetModuleList()[0].base_addr : BADADDR,
 			m_engine.GetModuleList()[0].imageSize
 		);
+
+		// if the target module is not the main one
+		// we will simulate load program to force rebase
+		// PDB load and unload symbol
+		// The main symbol must not be unload !!!
+		if (!isTargetModule(m_engine.GetModuleList()[0]))
+		{
+			for (int i = 1; i < m_engine.GetModuleCount(); i++)
+			{
+				auto moduleInfo = m_engine.GetModuleList()[i];
+				if (isTargetModule(moduleInfo))
+				{
+					m_events.addLibLoadEvent(
+						Strings::to_string(moduleInfo.path),
+						moduleInfo.base_addr,
+						moduleInfo.base_addr,
+						moduleInfo.imageSize
+					);
+				}
+			}
+		}
 		
 		for (int i = 1; i < m_cursor->GetThreadCount(); i++)
 		{
@@ -117,7 +159,7 @@ namespace ttddbg
 			m_events.addLibLoadEvent(
 				Strings::to_string(moduleInfo.module->path), 
 				moduleInfo.module->base_addr,
-				isTargetModule(m_engine.GetModuleList()[0]) ? m_engine.GetModuleList()[0].base_addr : BADADDR,
+				isTargetModule(*moduleInfo.module) ? moduleInfo.module->base_addr : BADADDR,
 				moduleInfo.module->imageSize
 			);
 		}
@@ -275,7 +317,7 @@ namespace ttddbg
 			TTD::TTD_Replay_MemoryWatchpointData data;
 			data.addr = bpts[i].ea;
 			data.size = m_arch;
-			data.flags = TTD::BP_FLAGS::EXEC;
+			data.flags = from_idabptype(bpts->type);
 			m_cursor->AddMemoryWatchpoint(&data);
 			(*nbpts)++;
 		}
@@ -285,7 +327,7 @@ namespace ttddbg
 			TTD::TTD_Replay_MemoryWatchpointData data;
 			data.addr = bpts[i].ea;
 			data.size = m_arch;
-			data.flags = TTD::BP_FLAGS::EXEC;
+			data.flags = from_idabptype(bpts->type);
 			m_cursor->RemoveMemoryWatchpoint(&data);
 			(*nbpts)++;
 		}
@@ -393,10 +435,13 @@ namespace ttddbg
 
 		std::for_each(moduleUnloaded.begin(), moduleUnloaded.end(),
 			[this](TTD::TTD_Replay_Module* module) {
-				m_events.addLibUnloadEvent(
-					Strings::to_string(module->path),
-					module->base_addr
-				);
+				if (!isTargetModule(*module))
+				{
+					m_events.addLibUnloadEvent(
+						Strings::to_string(module->path),
+						module->base_addr
+					);
+				}
 			}
 		);
 
@@ -405,7 +450,7 @@ namespace ttddbg
 				m_events.addLibLoadEvent(
 					Strings::to_string(module->path),
 					module->base_addr,
-					isTargetModule(m_engine.GetModuleList()[0]) ? m_engine.GetModuleList()[0].base_addr : BADADDR,
+					isTargetModule(*module) ? module->base_addr : BADADDR,
 					module->imageSize
 				);
 			}
