@@ -29,6 +29,7 @@ namespace ttddbg {
 		new_pair.second = pos;
 		m_positions.push_back(new_pair);
 
+		sortPositions();
 		savePositions();
 	}
 
@@ -156,5 +157,14 @@ namespace ttddbg {
 
 			m_positions.push_back(std::pair<std::string, TTD::Position>(std::string(posname.c_str()), pos));
 		}
+
+		sortPositions();
+	}
+
+	/**********************************************************************/
+	void PositionChooser::sortPositions() {
+		sort(m_positions.begin(), m_positions.end(), [](auto p1, auto p2) -> bool {
+			return (p1.second < p2.second);
+		});
 	}
 }
