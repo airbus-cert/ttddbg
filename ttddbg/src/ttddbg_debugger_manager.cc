@@ -493,10 +493,10 @@ namespace ttddbg
 			return;
 		}
 
-		auto threadCreatedEvents = m_engine.GetThreadCreatedEvent();
-		auto threadExitedEvents = m_engine.GetThreadTerminatedEvent();
-		auto moduleLoadedEvents = m_engine.GetModuleLoadedEvent();
-		auto moduleUnloadedEvents = m_engine.GetModuleUnloadedEvent();
+		auto threadCreatedEvents = m_engine.GetThreadCreatedEvents();
+		auto threadExitedEvents = m_engine.GetThreadTerminatedEvents();
+		auto moduleLoadedEvents = m_engine.GetModuleLoadedEvents();
+		auto moduleUnloadedEvents = m_engine.GetModuleUnloadedEvents();
 
 		auto itModuleLoaded = moduleLoadedEvents.begin();
 		auto itModuleUnloaded = moduleUnloadedEvents.begin();
@@ -509,10 +509,10 @@ namespace ttddbg
 		while (itModuleLoaded != moduleLoadedEvents.end() || itModuleUnloaded != moduleUnloadedEvents.end() || itThreadCreate != threadCreatedEvents.end() || itThreadTerminate != threadExitedEvents.end())
 		{
 			// For each iterator, get the current event position
-			TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoadedEvents.end()) ? TTD::MAX : itModuleLoaded->pos;
-			TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloadedEvents.end()) ? TTD::MAX : itModuleUnloaded->pos;
-			TTD::Position threadCreatePosition = (itThreadCreate == threadCreatedEvents.end()) ? TTD::MAX : itThreadCreate->pos;
-			TTD::Position threadTerminatePosition = (itThreadTerminate == threadExitedEvents.end()) ? TTD::MAX : itThreadTerminate->pos;
+			TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoadedEvents.end()) ? TTD::POSITION_MAX : itModuleLoaded->pos;
+			TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloadedEvents.end()) ? TTD::POSITION_MAX : itModuleUnloaded->pos;
+			TTD::Position threadCreatePosition = (itThreadCreate == threadCreatedEvents.end()) ? TTD::POSITION_MAX : itThreadCreate->pos;
+			TTD::Position threadTerminatePosition = (itThreadTerminate == threadExitedEvents.end()) ? TTD::POSITION_MAX : itThreadTerminate->pos;
 
 			// Now, we look for the smallest position and add the event to the timeline
 			// This way, we add the events in the order they happen
