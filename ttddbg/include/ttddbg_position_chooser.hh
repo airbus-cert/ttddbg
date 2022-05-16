@@ -34,6 +34,7 @@ namespace ttddbg {
 	private:
 		void savePositions() const;
 		void loadPositions();
+		void sortPositions();
 
 		std::vector<std::pair<std::string, TTD::Position>> m_positions;
 		std::shared_ptr<TTD::Cursor> m_cursor;
