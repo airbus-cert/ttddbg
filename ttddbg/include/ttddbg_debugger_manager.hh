@@ -74,7 +74,18 @@ namespace ttddbg
 		 */
 		PositionChooser *m_positionChooser;
 
+		/*!
+		* \brief	The next position to which the cursor should go. If it is {0, 0}, continue as normal.
+		*			If it is *not* {0, 0}, divert the control flow to set the position to this one, and set 
+		*			it to {0, 0} afterwards.
+		*/
 		TTD::Position m_nextPosition;
+
+		/*!
+		* \brief	Flag holding whether the "next action" should be a Backwards Single Step. If "true",
+		*			instead of doing the normal action, force the TTD engine to go back in time for a single
+		*			instruction. Then, set to "false".
+		*/
 		bool m_backwardsSingleStep;	
 
 		pid_t m_processId;
@@ -82,6 +93,11 @@ namespace ttddbg
 		std::filesystem::path m_targetImagePath;
 
 		bool isTargetModule(const TTD::TTD_Replay_Module& module);
+
+		/*!
+		* \brief	Automatically adds notable events to the Timeline (position_chooser). Notable events include:
+		*			thread creation, thread exit, module load, module unload
+		*/
 		void populatePositionChooser();
 
 	public:
