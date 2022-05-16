@@ -121,8 +121,11 @@ namespace ttddbg
 		 */
 		virtual ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) = 0;
 
+		/*!
+		* \brief	Sets the m_nextPosition attribute to the parameter.
+		* \param	The next position which should be assumed by the cursor.
+		*/
 		virtual void setNextPosition(TTD::Position) = 0;
-
 
 		virtual ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) = 0;
 		

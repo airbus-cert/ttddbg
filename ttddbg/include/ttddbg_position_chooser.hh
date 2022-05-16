@@ -36,10 +36,16 @@ namespace ttddbg {
 		void loadPositions();
 		void sortPositions();
 
+		/* List of all positions saved by the user. The pair is <position name, TTD position struct> */
 		std::vector<std::pair<std::string, TTD::Position>> m_positions;
+
+		/* A pointer to the current TTD::Cursor used by the debugger. Used when adding a new position to get the current position. */
 		std::shared_ptr<TTD::Cursor> m_cursor;
+
+		/* A pointer to the shared logger object. */
 		std::shared_ptr<Logger> m_logger;
 
+		/* This boolean holds the internal state of the Chooser: is it visible or not. Used to prevent calling choose() twice. */
 		bool m_isClosed;
 	};
 }
