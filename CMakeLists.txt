@@ -6,6 +6,7 @@ project(ttddbg LANGUAGES CXX VERSION 1.0.0)
 
 # Opions
 option(BUILD_TESTS "Build test programs" OFF)
+option(INSTALL_TTDDLL "Try to find and install ttd dll from Windbg Preview install folder" OFF)
 
 # Config
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -23,6 +24,12 @@ endif(MSVC)
 # Add cmake folder for 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# Install ttd dlls if it's requested
+# Use when generate installer
+if (INSTALL_TTDDLL)
+	find_package(TTDReplay)
+	INSTALL_TTDREPLAY(".")
+endif (INSTALL_TTDDLL)
 
 # The IDA plugin
 add_subdirectory(ttddbg)
@@ -36,14 +43,13 @@ endif(BUILD_TESTS)
 message(STATUS "Configuration summary")
 message(STATUS "Project name                 : ${PROJECT_NAME}")
 message(STATUS "Project version              : ${PROJECT_VERSION}")
+message(STATUS "Build Tests                  : ${BUILD_TESTS}")
+message(STATUS "Install TTD Dlls             : ${INSTALL_TTDDLL}")
 
 # CPack part
 if(WIN32)
 set(CPACK_GENERATOR "WIX")
-set(CPACK_WIX_UPGRADE_GUID "3fceb3d1-542b-469d-a5af-7068f95e7a68")
+set(CPACK_WIX_UPGRADE_GUID "01fe726f-0a68-4913-8193-020d6911ce42")
 set(CPACK_WIX_UNINSTALL "1")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "IDA Pro 7.6")
-else()
-set(CPACK_SOURCE_GENERATOR "TGZ")
 endif()
 include(CPack)

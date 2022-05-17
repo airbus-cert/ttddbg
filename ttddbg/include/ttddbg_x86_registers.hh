@@ -3,6 +3,10 @@
 
 namespace ttddbg 
 {
+	/*!
+	 * \brief	Declare x86 arch class register
+	 *			This code is inspired from https://github.com/cseagle/sk3wldbg
+	 */
 	static const char* x86_register_classes[] = {
 		"General registers",
 		"Segment registers",
@@ -12,6 +16,10 @@ namespace ttddbg
 		NULL
 	};
 
+	/*!
+	 * \brief	Declare x86 arch class register enum
+	 *			This code is inspired from https://github.com/cseagle/sk3wldbg
+	 */
 	enum X86RegClass {
 		X86_GENERAL = 1,
 		X86_SEGMENT = 2,
@@ -20,6 +28,10 @@ namespace ttddbg
 		X86_XMM = 16
 	};
 
+	/*!
+	 * \brief	Bit flags
+	 *			This code is inspired from https://github.com/cseagle/sk3wldbg
+	 */
 	static const char* flag_bits[32] = {
 		"CF", NULL, "PF", NULL, "AF", NULL, "ZF", "SF", "TF", "IF", "DF", "OF",
 		"IOPL", "IOPL", "NT", NULL, "RF", "VM", "AC", "VIF", "VIP", "ID"
