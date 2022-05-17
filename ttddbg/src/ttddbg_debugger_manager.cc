@@ -78,14 +78,16 @@ namespace ttddbg
 		if (!std::filesystem::exists(path))
 		{
 			m_logger->error("unable to find trace file : ", path);
-			return DRC_FAILED;
+			m_logger->error("Please fill the Application field with the TTD trace file");
+			return DRC_NOFILE;
 		}
 
 		std::ifstream traceFile(path, std::ios::out | std::ios::binary);
 		if (!traceFile.is_open())
 		{
 			m_logger->error("unable to open the trace : ", path);
-			return DRC_FAILED;
+			m_logger->error("Please fill the Application field with the TTD trace file");
+			return DRC_NOFILE;
 		}
 
 		std::vector<char> magic(6);
@@ -95,7 +97,8 @@ namespace ttddbg
 		if (magic != std::vector<char>({ 'T', 'T', 'D', 'L', 'o', 'g'}))
 		{
 			m_logger->error("invalid trace file (wrong magic) : ", path);
-			return DRC_FAILED;
+			m_logger->error("Please fill the Application field with the TTD trace file");
+			return DRC_NOFILE;
 		}
 
 		// Initialize engine

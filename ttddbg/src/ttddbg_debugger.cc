@@ -153,8 +153,8 @@ namespace ttddbg
 					DBG_FLAG_DEBTHREAD | 
 					DBG_FLAG_DEBUG_DLL;
 
-		flags2 = DBG_HAS_GET_PROCESSES |
-			DBG_HAS_SET_RESUME_MODE;
+		flags2 =	DBG_HAS_GET_PROCESSES |
+					DBG_HAS_SET_RESUME_MODE;
 
 		resume_modes = DBG_RESMOD_STEP_INTO;
 		processor = "metapc";
