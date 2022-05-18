@@ -26,6 +26,11 @@ namespace ttddbg
 				auto errbuf = va_arg(va, qstring*);
 				return ttddbg->m_manager->onInit(std::string(hostname), portnum, std::string(password), errbuf);
 			}
+
+			case debugger_t::ev_term_debugger: {
+				return ttddbg->m_manager->OnTermDebugger();
+			}
+
 			case debugger_t::ev_get_processes: {
 				procinfo_vec_t* procs = va_arg(va, procinfo_vec_t*);
 				auto errbuf = va_arg(va, qstring*);
@@ -51,8 +56,7 @@ namespace ttddbg
 			case debugger_t::ev_set_exception_info: {
 				exception_info_t* info = va_arg(va, exception_info_t*);
 				int qty = va_arg(va, int);
-				ttddbg->m_logger->info("ev_set_exception_info");
-				return DRC_OK;
+				return ttddbg->m_manager->onSetExceptionInfo(info, qty);
 			}
 
 			case debugger_t::ev_get_debug_event: {

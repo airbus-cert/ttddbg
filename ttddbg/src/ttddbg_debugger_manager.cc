@@ -59,6 +59,12 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
+	ssize_t DebuggerManager::OnTermDebugger()
+	{
+		return DRC_OK;
+	}
+
+	/**********************************************************************/
 	ssize_t DebuggerManager::onGetProcess(procinfo_vec_t* infos, qstring* errBuf)
 	{
 		process_info_t info;
@@ -205,6 +211,12 @@ namespace ttddbg
 		other.end_ea = (ea_t)0x7FFFFFFFFFFF; // Userland process on windows
 		other.bitness = (m_arch == ARCH_64_BITS)?2:1;
 		infos->push_back(other);
+		return DRC_OK;
+	}
+
+	/**********************************************************************/
+	ssize_t DebuggerManager::onSetExceptionInfo(exception_info_t* info, int qty)
+	{
 		return DRC_OK;
 	}
 

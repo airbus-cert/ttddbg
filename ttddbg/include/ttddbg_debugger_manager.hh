@@ -88,6 +88,9 @@ namespace ttddbg
 		*/
 		bool m_backwardsSingleStep;	
 
+		/*!
+		 * \brief	Fake process id
+		 */
 		pid_t m_processId;
 
 		/*!
@@ -127,6 +130,11 @@ namespace ttddbg
 		ssize_t onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf) override;
 
 		/*!
+		 * \brief	When terminate a debugger
+		 */
+		ssize_t OnTermDebugger() override;
+
+		/*!
 		 * \brief	Event use to get information about the current debugging process
 		 * \param	infos	list of processes started by debugger (name and pid)
 		 */
@@ -164,6 +172,12 @@ namespace ttddbg
 		 * \param	infos	list of memory infos
 		 */
 		ssize_t onGetMemoryInfo(meminfo_vec_t* infos, qstring* errbuf = nullptr) override;
+
+		/*!
+		 * \brief	Set exception configuration of the debugger
+		 * \param	info	exception informations
+		 */
+		ssize_t onSetExceptionInfo(exception_info_t* info, int qty) override;
 
 		/*!
 		 * \brief	Read memory at a special process address

@@ -25,6 +25,11 @@ namespace ttddbg
 		virtual ssize_t onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf) = 0;
 
 		/*!
+		 * \brief	When terminate a debugger
+		 */
+		virtual ssize_t OnTermDebugger() = 0;
+
+		/*!
 		 * \brief	Event use to get information about the current debugging process
 		 * \param	infos	list of processes started by debugger (name and pid)
 		 */
@@ -62,6 +67,12 @@ namespace ttddbg
 		 * \param	infos	list of memory infos
 		 */
 		virtual ssize_t onGetMemoryInfo(meminfo_vec_t* infos, qstring* errbuf = nullptr) = 0;
+
+		/*!
+		 * \brief	Set exception configuration of the debugger
+		 * \param	info	exception informations
+		 */
+		virtual ssize_t onSetExceptionInfo(exception_info_t* info, int qty) = 0;
 
 		/*!
 		 * \brief	Read memory at a special process address
