@@ -1,4 +1,4 @@
 [submodule "ttd-bindings"]
 	path = ttd-bindings
-	url = https://github.com/commial/ttd-bindings.git
+	url = https://github.com/airbus-cert/ttd-bindings.git
 	branch = master
