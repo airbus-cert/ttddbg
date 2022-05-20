@@ -512,58 +512,36 @@ namespace ttddbg
 		auto threadExitedEvents = m_engine.GetThreadTerminatedEvents();
 		auto moduleLoadedEvents = m_engine.GetModuleLoadedEvents();
 		auto moduleUnloadedEvents = m_engine.GetModuleUnloadedEvents();
+		auto exceptionEvents = m_engine.GetExceptionEvents();
 
-		auto itModuleLoaded = moduleLoadedEvents.begin();
-		auto itModuleUnloaded = moduleUnloadedEvents.begin();
-		auto itThreadCreate = threadCreatedEvents.begin();
-		auto itThreadTerminate = threadExitedEvents.begin();
+		std::for_each(threadCreatedEvents.begin(), threadCreatedEvents.end(), [this](TTD::TTD_Replay_ThreadCreatedEvent& e) {
+			std::ostringstream oss;
+			oss << "Thread created: " << e.info->threadid;
+			m_positionChooser->addNewPosition(oss.str(), e.pos);
+		});
 
-		std::ostringstream oss;
-		TTD::Position pos = {0};
+		std::for_each(threadExitedEvents.begin(), threadExitedEvents.end(), [this](TTD::TTD_Replay_ThreadTerminatedEvent& e) {
+			std::ostringstream oss;
+			oss << "Thread exited: " << e.info->threadid;
+			m_positionChooser->addNewPosition(oss.str(), e.pos);
+		});
 
-		while (itModuleLoaded != moduleLoadedEvents.end() || itModuleUnloaded != moduleUnloadedEvents.end() || itThreadCreate != threadCreatedEvents.end() || itThreadTerminate != threadExitedEvents.end())
-		{
-			// For each iterator, get the current event position
-			TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoadedEvents.end()) ? TTD::POSITION_MAX : itModuleLoaded->pos;
-			TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloadedEvents.end()) ? TTD::POSITION_MAX : itModuleUnloaded->pos;
-			TTD::Position threadCreatePosition = (itThreadCreate == threadCreatedEvents.end()) ? TTD::POSITION_MAX : itThreadCreate->pos;
-			TTD::Position threadTerminatePosition = (itThreadTerminate == threadExitedEvents.end()) ? TTD::POSITION_MAX : itThreadTerminate->pos;
+		std::for_each(moduleLoadedEvents.begin(), moduleLoadedEvents.end(), [this](TTD::TTD_Replay_ModuleLoadedEvent& e) {
+			std::ostringstream oss;
+			oss << "Module loaded: " << Strings::to_string(e.info->path);
+			m_positionChooser->addNewPosition(oss.str(), e.pos);
+		});
 
-			// Now, we look for the smallest position and add the event to the timeline
-			// This way, we add the events in the order they happen
-			oss.str("");
+		std::for_each(moduleUnloadedEvents.begin(), moduleUnloadedEvents.end(), [this](TTD::TTD_Replay_ModuleUnloadedEvent& e) {
+			std::ostringstream oss;
+			oss << "Module unloaded: " << Strings::to_string(e.info->path);
+			m_positionChooser->addNewPosition(oss.str(), e.pos);
+		});
 
-			if (moduleLoadedPosition < moduleUnloadedPosition && moduleLoadedPosition < threadCreatePosition && moduleLoadedPosition < threadTerminatePosition)
-			{
-				oss << "Module loaded: " << Strings::to_string(itModuleLoaded->info->path);
-				pos = moduleLoadedPosition;
-				itModuleLoaded++;
-			}
-			else if (moduleUnloadedPosition < moduleLoadedPosition && moduleUnloadedPosition < threadCreatePosition && moduleUnloadedPosition < threadTerminatePosition)
-			{
-				oss << "Module unloaded: " << Strings::to_string(itModuleUnloaded->info->path);
-				pos = moduleUnloadedPosition;
-				itModuleUnloaded++;
-			}
-			else if (threadCreatePosition < moduleLoadedPosition && threadCreatePosition < moduleLoadedPosition && threadCreatePosition < threadTerminatePosition)
-			{
-				oss << "Thread created: " << itThreadCreate->info->threadid;
-				pos = threadCreatePosition;
-				itThreadCreate++;
-			}
-			else if (threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < threadCreatePosition)
-			{
-				oss << "Thread exited: " << itThreadTerminate->info->threadid;
-				pos = threadTerminatePosition;
-				itThreadTerminate++;
-			}
-			else
-			{
-				oss << "Unknown iterator";
-				pos = { 0 };
-			}
-
-			m_positionChooser->addNewPosition(oss.str(), pos);
-		}
+		std::for_each(exceptionEvents.begin(), exceptionEvents.end(), [this](TTD::TTD_Replay_ExceptionEvent& e) {
+			std::ostringstream oss;
+			oss << "Exception at 0x" << std::hex << e.info.ExceptionAddress << " of type " << Strings::exception_name(e.info.ExceptionCode) << " (0x" << std::hex << e.info.ExceptionCode << ")";
+			m_positionChooser->addNewPosition(oss.str(), e.pos);
+		});
 	}
 }
