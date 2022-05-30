@@ -8,7 +8,7 @@ This plugin supports both x86 and x64 traces, and by extension IDA and IDA64.
 
 ## Installation
 
-Installing the plugin can be done using the installer from the [releases page](releases). The installer will automatically install the required dependencies, provided you have a copy of [WinDBG Preview](https://apps.microsoft.com/store/detail/windbg-preview/9PGJGD53TN86) installed.
+Installing the plugin can be done using the installer from the [releases page]([releases](https://github.com/airbus-cert/ttddbg/releases)). The installer will automatically install the required dependencies, provided you have a copy of [WinDBG Preview](https://apps.microsoft.com/store/detail/windbg-preview/9PGJGD53TN86) installed.
 
 ## Usage
 
