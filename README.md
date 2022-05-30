@@ -18,6 +18,12 @@ Once installed, you can use the plugin by selecting the `ttddbg` debugger in the
 
 ![ttdbg debugger setup](screenshots/ida_ttddbg_run.png)
 
+| Icon | Action |
+|------|--------|
+|![backward_icon](screenshots/ida_backward_icon.png) | Go to previous breakpoint |
+|![single_step_icon](screenshots/ida_single_step_icon.png) | Single step backward (RIP - one instruction) |
+|![timeline_icon](screenshots/ida_timeline_icon.png) | Manage the timeline of interesting events (Threads Create/Terminated, Module Loaded/Unloaded, Exceptions, Custom) |
+
 ## Building the project
 
 Prerequisites:
@@ -26,6 +32,8 @@ Prerequisites:
 - A copy of `TTDReplay.dll` (usually in `C:\Program Files\WindowsApps\[WinDBG folder]\amd64\ttd\`)
 - A copy of `TTDReplayCPU.dll` (usually in `C:\Program Files\WindowsApps\[WinDBG folder]\amd64\ttd\`)
 
+And let CMAKE doing magical !
+
 ```
 $ git clone git@github.com:airbus-cert/ttddbg.git --recursive
 $ mkdir build
@@ -33,3 +41,18 @@ $ cd build
 $ cmake ..\ttddbg -DIDA_SDK_SOURCE_DIR=[PATH_TO_IDA_SDK_ROOT_FOLDER] -DCPACK_PACKAGE_INSTALL_DIRECTORY="IDA Pro 7.7"
 $ cmake --build . --target package --config release
 ```
+
+## Developper corner
+
+To create a dev solution :
+
+```
+$ git clone git@github.com:airbus-cert/ttddbg.git --recursive
+$ mkdir build
+$ cd build
+$ cmake ..\ttddbg -DIDA_SDK_SOURCE_DIR=[PATH_TO_IDA_SDK_ROOT_FOLDER] -DBUILD_TESTS=ON
+```
+
+# Credits and references
+
+Greetz to [commial](https://github.com/commial) for his work on [ttd-bindings](https://github.com/commial/ttd-bindings)!
