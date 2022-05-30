@@ -5,6 +5,8 @@
 #include <idp.hpp>
 #include "ttddbg_action.hh"
 #include "ttddbg_position_chooser.hh"
+#include "single_step_icon.hh"
+#include "resume_backwards_icon.hh"
 
 namespace ttddbg 
 {
@@ -26,7 +28,7 @@ namespace ttddbg
 			this,
 			nullptr,
 			nullptr,
-			212			// Icon of green arrow
+			load_custom_icon(resumebackwards_png, resumebackwards_png_length, "PNG")
 		);
 
 
@@ -55,7 +57,7 @@ namespace ttddbg
 			this,
 			nullptr,
 			nullptr,
-			-1
+			load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
 		);
 
 	public:
