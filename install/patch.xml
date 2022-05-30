@@ -1,14 +1,18 @@
 <CPackWiXPatch>
 	<CPackWiXFragment Id="#PRODUCT">
-		<Property Id="TTD">
-			<DirectorySearch Id='IsInstalled' Path='[ProgramFiles64Folder]WindowsApps\Microsoft.WinDbg_1.2202.7001.0_neutral__8wekyb3d8bbwe\amd64\ttd' AssignToProperty="yes" />
+		<Property Id="TTDPACKAGENAME">
+			<RegistrySearch Id='TTDPACKAGENAME' Type='raw' Root='HKCR' Key='Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.WinDbg_8wekyb3d8bbwe\Schemas' Name='PackageFullName' />
 		</Property>
+ 
 		<Condition Message="Windbg Preview Not Found. Please Install It Before.">
-		  <![CDATA[TTD]]>
+		  <![CDATA[Installed OR TTDPACKAGENAME]]>
 		</Condition>
+		
+		<SetProperty Id="TTD" Value='[ProgramFiles64Folder]WindowsApps\[TTDPACKAGENAME]\amd64\ttd' Before="AppSearch"/>
+
 		<Component Id="InstallTDD" Guid="4d084a02-bbbb-4e86-a1ba-b950afc930e8" Directory="INSTALL_ROOT" Feature="ProductFeature">
 			<CopyFile Id="CopyTTDReplay" SourceProperty="TTD" SourceName="TTDReplay.dll" DestinationProperty="INSTALL_ROOT" DestinationName="TTDReplay.dll"/>
 			<CopyFile Id="CopyTTDReplayCPU" SourceProperty="TTD" SourceName="TTDReplayCPU.dll" DestinationProperty="INSTALL_ROOT" DestinationName="TTDReplayCPU.dll"/>
 		</Component>
 	</CPackWiXFragment>
-</CPackWiXPatch>
+</CPackWiXPatch> 
