@@ -88,10 +88,21 @@ namespace ttddbg
 		*/
 		bool m_backwardsSingleStep;	
 
+		/*!
+		 * \brief	Fake process id
+		 */
 		pid_t m_processId;
 
+		/*!
+		 * \brief	the module of interest (the main module loaded by IDA)
+		 */
 		std::filesystem::path m_targetImagePath;
 
+		/*!
+		 * \brief	use to known if the current module is the one currently reversed
+		 * \param	module	module to process
+		 * \return	true if the TTD module is the one loaded into IDA
+		 */
 		bool isTargetModule(const TTD::TTD_Replay_Module& module);
 
 		/*!
@@ -116,6 +127,11 @@ namespace ttddbg
 		 * \param	errbuf		use to signal error
 		 */
 		ssize_t onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf) override;
+
+		/*!
+		 * \brief	When terminate a debugger
+		 */
+		ssize_t OnTermDebugger() override;
 
 		/*!
 		 * \brief	Event use to get information about the current debugging process
@@ -155,6 +171,12 @@ namespace ttddbg
 		 * \param	infos	list of memory infos
 		 */
 		ssize_t onGetMemoryInfo(meminfo_vec_t* infos, qstring* errbuf = nullptr) override;
+
+		/*!
+		 * \brief	Set exception configuration of the debugger
+		 * \param	info	exception informations
+		 */
+		ssize_t onSetExceptionInfo(exception_info_t* info, int qty) override;
 
 		/*!
 		 * \brief	Read memory at a special process address
@@ -200,8 +222,14 @@ namespace ttddbg
 		 */
 		ssize_t onUpdateBpts(int* nbpts, update_bpt_info_t* bpts, int nadd, int ndel, qstring* errbuf) override;
 
+		/*!
+		 * \brief	When debugger is resumed
+		 */
 		ssize_t onSetResumeMode(thid_t tid, resume_mode_t resmod) override;
 
+		/*!
+		 * \brief	When call stack is updated
+		 */
 		ssize_t onUpdateCallStack(thid_t tid, call_stack_t* trace) override;
 
 		/*!
@@ -216,9 +244,21 @@ namespace ttddbg
 		 */
 		void applyCursor(TTD::Position newPos);
 
+		/*!
+		 * \brief	change the way you debug : Welcome time travel debugger !
+		 */
 		void switchWay() override;
+
+		/*!
+		 * \brief	Request a single step debugging but in backward way ! 
+		 */
 		void requestBackwardsSingleStep() override;
+
+		/*!
+		 * \brief	Open the timeline
+		 */
 		void openPositionChooser() override;
+
 		void setNextPosition(TTD::Position newPos) override;
 
 	private:
@@ -226,6 +266,14 @@ namespace ttddbg
 		std::set<uint32_t> getCursorThreads();
 		std::set<TTD::TTD_Replay_Module*> getCursorModules();
 
+		/*!
+		 * \brief	Compute the diff between two position (forward and backward)
+		 *			And emit the appropriate debug event
+		 * \param	threadsBefore	List of thread id before the change of position
+		 * \param	threadsAfter	List of thread id after the change of position
+		 * \param	modulesBefore	List of modules loaded before the change of position
+		 * \param	modulesAfter	List of modules loaded after the change of position
+		 */
 		void applyDifferences(std::set<uint32_t> threadsBefore, std::set<uint32_t> threadsAfter, std::set<TTD::TTD_Replay_Module*> modulesBefore, std::set<TTD::TTD_Replay_Module*> modulesAfter);
 	};
 }

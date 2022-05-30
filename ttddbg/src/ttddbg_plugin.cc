@@ -80,7 +80,7 @@ plugin_t PLUGIN =
 	nullptr,
 	nullptr,
 	"Time Travel Debugger",
-	"Airbus CERT and Camille Mougey\n",
+	"Airbus CERT\n",
 	"ttddbg",
 	"F3"
 };

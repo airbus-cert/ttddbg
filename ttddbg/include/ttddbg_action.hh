@@ -6,6 +6,11 @@
 
 namespace ttddbg 
 {
+	/*!
+	 * \brief	Describe the new action introduce by the time travel debugging
+	 *			The backward action will back in time until the debugger saw a debugger 
+	 *			breakpoint or reach the starting point
+	 */
 	struct BackwardStateRequest : public action_handler_t
 	{
 		inline static const char* actionName = "ttddbg:Backward";
@@ -16,6 +21,12 @@ namespace ttddbg
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
 
+	/*!
+	 * \brief	Describe the new action introduce by the time travel debugging
+	 *			Single step will just use backward debugger with a singe step
+	 *			Be carefull it will not understand jump (like in the function calling case)
+	 *			It will just decrement the EIP correctly
+	 */
 	struct BackwardSingleStepRequest : public action_handler_t
 	{
 		inline static const char* actionName = "ttddbg:BackwardSingle";
@@ -26,11 +37,13 @@ namespace ttddbg
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
 
+	/*!
+	 * \brief	Action use to manage the position chooser (aka the timeline)
+	 */
 	struct OpenPositionChooserAction : public action_handler_t 
 	{
 		inline static const char* actionName = "ttddbg:ChoosePosition";
 		inline static const char* actionLabel = "Timeline";
-		//inline static const char* actionHotkey = "F3";
 
 		virtual int idaapi activate(action_activation_ctx_t*) override;
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;

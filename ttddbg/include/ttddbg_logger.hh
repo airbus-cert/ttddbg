@@ -7,6 +7,10 @@
 
 namespace ttddbg
 {
+	/*!
+	 * \brief	SFINAE override to manage multiple type
+	 *			Use to convert integer type into string
+	 */
 	template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type = 0>
 	std::string to_string(T p)
 	{
@@ -15,12 +19,20 @@ namespace ttddbg
 		return ss.str();
 	}
 
+	/*!
+	 * \brief	SFINAE override to manage multiple type
+	 *			Use to convert c++ std::string (of it's easy)
+	 */
 	template<typename T, typename std::enable_if<std::is_same_v<T, std::string>, T>::type = 0>
 	std::string to_string(T p)
 	{
 		return p;
 	}
 
+	/*!
+	 * \brief	SFINAE override to manage multiple type
+	 *			Use to convert C char* string
+	 */
 	template<typename T, typename std::enable_if<std::is_same_v<T, const char*>, T>::type = 0>
 	std::string to_string(T p)
 	{

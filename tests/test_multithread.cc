@@ -18,5 +18,6 @@ int main() {
 	std::thread t2([]() { display(5, 5); });
 	t1.join();
 	t2.join();
+
 	return 0;
 }
