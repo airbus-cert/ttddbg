@@ -22,7 +22,7 @@ Once installed, you can use the plugin by selecting the `ttddbg` debugger in the
 |------|--------|
 |![backward_icon](screenshots/ida_backward_icon.png) | Go to previous breakpoint |
 |![single_step_icon](screenshots/ida_single_step_icon.png) | Single step backward (RIP - one instruction) |
-|![timeline_icon](screenshots/ida_timeline_icon.png) | Manage the timeline of interesting events (Threads Create/Terminated, Module Loaded/Unloaded, Exceptions, Custom) |
+|![timeline_icon](screenshots/ida_timeline_icon.png) | Manage the timeline of interesting events (Threads Created/Terminated, Module Loaded/Unloaded, Exceptions, Custom) |
 
 ## Building the project
 
@@ -32,9 +32,9 @@ Prerequisites:
 - A copy of `TTDReplay.dll` (usually in `C:\Program Files\WindowsApps\[WinDBG folder]\amd64\ttd\`)
 - A copy of `TTDReplayCPU.dll` (usually in `C:\Program Files\WindowsApps\[WinDBG folder]\amd64\ttd\`)
 
-And let CMAKE doing magical !
+And let CMAKE do its magic!
 
-```
+```console
 $ git clone git@github.com:airbus-cert/ttddbg.git --recursive
 $ mkdir build
 $ cd build
@@ -42,11 +42,11 @@ $ cmake ..\ttddbg -DIDA_SDK_SOURCE_DIR=[PATH_TO_IDA_SDK_ROOT_FOLDER] -DCPACK_PAC
 $ cmake --build . --target package --config release
 ```
 
-## Developper corner
+## Developer corner
 
-To create a dev solution :
+To create a dev solution:
 
-```
+```console
 $ git clone git@github.com:airbus-cert/ttddbg.git --recursive
 $ mkdir build
 $ cd build
