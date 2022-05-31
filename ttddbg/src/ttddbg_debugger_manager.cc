@@ -19,7 +19,7 @@ namespace ttddbg
 		case BPT_READ:
 			return TTD::BP_FLAGS::READ;
 		case BPT_RDWR:
-			return TTD::BP_FLAGS::READ | TTD::BP_FLAGS::READ;
+			return TTD::BP_FLAGS::READ | TTD::BP_FLAGS::WRITE;
 		case BPT_EXEC:
 			return TTD::BP_FLAGS::EXEC;
 		case BPT_DEFAULT:
