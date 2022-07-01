@@ -86,6 +86,11 @@ namespace ttddbg {
 
 	/**********************************************************************/
 	chooser_t::cbret_t PositionChooser::ins(ssize_t n) {
+		if (m_cursor == NULL) {
+			warning("Cannot insert a new position when not in debug mode");
+			return NOTHING_CHANGED;
+		}
+
 		qstring res;
 		bool ok = ask_str(&res, 0, "Name of the new position");
 

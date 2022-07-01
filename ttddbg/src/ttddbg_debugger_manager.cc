@@ -498,9 +498,10 @@ namespace ttddbg
 
 	/**********************************************************************/
 	void DebuggerManager::populatePositionChooser() {
-		// TODO: use m_engine methods to add timeline positions for each:
-		// - Thread creation / exit
-		// - Module load / unload
+		if (m_cursor == NULL) {
+			warning("The Timeline is only available while debugging.");
+			return;
+		}
 
 		if (m_positionChooser->get_count() > 0) {
 			// If the position count is > 0 even before populating, it means that
