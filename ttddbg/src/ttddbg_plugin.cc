@@ -20,16 +20,44 @@
 #include "ttddbg_logger_ida.hh"
 #include "ttddbg_debugger_x86.hh"
 #include "ttddbg_debugger_x86_64.hh"
+#include "single_step_icon.hh"
+#include "resume_backwards_icon.hh"
 
 /**********************************************************************/
-ttddbg::Plugin::Plugin()
+ttddbg::Plugin::Plugin() : 
+	m_backwardActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		BackwardStateRequest::actionName,
+		BackwardStateRequest::actionLabel,
+		&m_backwardAction,
+		this,
+		nullptr,
+		nullptr,
+		load_custom_icon(resumebackwards_png, resumebackwards_png_length, "PNG")
+	)),
+	m_positionChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		OpenPositionChooserAction::actionName,
+		OpenPositionChooserAction::actionLabel,
+		&m_positionChooserAction,
+		this,
+		nullptr,
+		nullptr,
+		185			// timeline Icon
+	)),
+	m_backwardSingleActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		BackwardSingleStepRequest::actionName,
+		BackwardSingleStepRequest::actionLabel,
+		&m_backwardSingleAction,
+		this,
+		nullptr,
+		nullptr,
+		load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
+	))
 {
 	register_action(m_backwardActionDesc);
 	register_action(m_positionChooserActionDesc);
 	register_action(m_backwardSingleActionDesc);
-	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
-	attach_action_to_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
-	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+	
+	//showActions();
 }
 
 /**********************************************************************/
@@ -37,6 +65,21 @@ ttddbg::Plugin::~Plugin()
 {
 	unregister_action(m_backwardAction.actionName);
 	unregister_action(m_positionChooserAction.actionName);
+	unregister_action(m_backwardSingleAction.actionName);
+}
+
+void ttddbg::Plugin::showActions()
+{
+	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+}
+
+void ttddbg::Plugin::hideActions()
+{
+	detach_action_from_toolbar("DebugToolBar", m_backwardActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 }
 
 /**********************************************************************/
@@ -51,15 +94,16 @@ static plugmod_t* idaapi ttddbg_init(void)
 	auto logger = std::make_shared<ttddbg::IdaLogger>();
 	try
 	{
+		auto plg = std::make_shared<ttddbg::Plugin>();
 		if (inf_is_64bit())
 		{
-			dbg = new ttddbg::DebuggerX86_64(logger);
+			dbg = new ttddbg::DebuggerX86_64(logger, plg);
 		}
 		else
 		{
-			dbg = new ttddbg::DebuggerX86(logger);
+			dbg = new ttddbg::DebuggerX86(logger, plg);
 		}
-		return new ttddbg::Plugin();
+		return plg.get();
 	}
 	catch (std::exception& e)
 	{

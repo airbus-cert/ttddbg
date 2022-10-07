@@ -47,20 +47,22 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch)
-		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false)
+	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, std::shared_ptr<Plugin> plugin)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
 	{
 	}
 
 	/**********************************************************************/
 	ssize_t DebuggerManager::onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf)
 	{
+		m_plugin->showActions();
 		return DRC_OK;
 	}
 
 	/**********************************************************************/
 	ssize_t DebuggerManager::OnTermDebugger()
 	{
+		m_plugin->hideActions();
 		return DRC_OK;
 	}
 
@@ -76,7 +78,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
-	{	
+	{
 		m_isForward = true;
 		m_targetImagePath = input_path;
 
