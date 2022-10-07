@@ -26,10 +26,10 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Install ttd dlls if it's requested
 # Use when generate installer
-if (INSTALL_TTDDLL)
+if (WindbgPreview_INSTALL_PATH)
 	find_package(TTDReplay)
 	INSTALL_TTDREPLAY(".")
-endif (INSTALL_TTDDLL)
+endif (WindbgPreview_INSTALL_PATH)
 
 # The IDA plugin
 add_subdirectory(ttddbg)
@@ -44,15 +44,17 @@ message(STATUS "Configuration summary")
 message(STATUS "Project name                 : ${PROJECT_NAME}")
 message(STATUS "Project version              : ${PROJECT_VERSION}")
 message(STATUS "Build Tests                  : ${BUILD_TESTS}")
-message(STATUS "Install TTD Dlls             : ${INSTALL_TTDDLL}")
+message(STATUS "Install TTD Dlls             : ${WindbgPreview_INSTALL_PATH}")
 
 # CPack part
 if(WIN32)
-set(CPACK_GENERATOR "WIX")
-set(CPACK_WIX_UPGRADE_GUID "01fe726f-0a68-4913-8193-020d6911ce42")
-set(CPACK_WIX_UNINSTALL "1")
-set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/install/patch.xml")
-set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/install\\\\CERT-blue-short.bmp")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+	set(CPACK_GENERATOR "WIX")
+	set(CPACK_WIX_UPGRADE_GUID "01fe726f-0a68-4913-8193-020d6911ce42")
+	set(CPACK_WIX_UNINSTALL "1")
+	if(NOT WindbgPreview_INSTALL_PATH)
+		set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/install/patch.xml")
+	endif(NOT WindbgPreview_INSTALL_PATH)
+	set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/install\\\\CERT-blue-short.bmp")
+	set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 endif()
 include(CPack)

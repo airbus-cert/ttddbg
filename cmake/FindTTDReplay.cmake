@@ -4,12 +4,10 @@
 # OUTPUT is ${TTDReplay_INSTALL_PATH} set with the correct path
 # INSTALL_TTDREPLAY macro use to copy ttd dll files
 
-set(WindbgPreview_INSTALL_PATH "$ENV{ProgramFiles}/WindowsApps/Microsoft.WinDbg_1.2202.7001.0_neutral__8wekyb3d8bbwe/amd64/ttd")
-
 find_path(
 	TTDReplay_INSTALL_PATH
 	NAMES TTDReplay.dll
-	PATHS "${WindbgPreview_INSTALL_PATH}"
+	PATHS "${WindbgPreview_INSTALL_PATH}/amd64/ttd"
 	NO_DEFAULT_PATH
 )
 
