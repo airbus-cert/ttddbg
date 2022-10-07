@@ -5,8 +5,6 @@
 #include <idp.hpp>
 #include "ttddbg_action.hh"
 #include "ttddbg_position_chooser.hh"
-#include "single_step_icon.hh"
-#include "resume_backwards_icon.hh"
 
 namespace ttddbg 
 {
@@ -21,44 +19,20 @@ namespace ttddbg
 		 *			Use by IDA to know how to print button
 		 */
 		BackwardStateRequest m_backwardAction;
-		const action_desc_t m_backwardActionDesc = ACTION_DESC_LITERAL_PLUGMOD(
-			BackwardStateRequest::actionName,
-			BackwardStateRequest::actionLabel,
-			&m_backwardAction,
-			this,
-			nullptr,
-			nullptr,
-			load_custom_icon(resumebackwards_png, resumebackwards_png_length, "PNG")
-		);
+		const action_desc_t m_backwardActionDesc;
 
 
 		/*!
 		 * \brief	Show the timeline GUI
 		 */
 		OpenPositionChooserAction m_positionChooserAction;
-		const action_desc_t m_positionChooserActionDesc = ACTION_DESC_LITERAL_PLUGMOD(
-			OpenPositionChooserAction::actionName,
-			OpenPositionChooserAction::actionLabel,
-			&m_positionChooserAction,
-			this,
-			nullptr,
-			nullptr,
-			185			// timeline Icon
-		);
+		const action_desc_t m_positionChooserActionDesc;
 
 		/*!
 		 * \brief	single instruction pointer decrement
 		 */
 		BackwardSingleStepRequest m_backwardSingleAction;
-		const action_desc_t m_backwardSingleActionDesc = ACTION_DESC_LITERAL_PLUGMOD(
-			BackwardSingleStepRequest::actionName,
-			BackwardSingleStepRequest::actionLabel,
-			&m_backwardSingleAction,
-			this,
-			nullptr,
-			nullptr,
-			load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
-		);
+		const action_desc_t m_backwardSingleActionDesc;
 
 	public:
 		/*!
@@ -75,6 +49,16 @@ namespace ttddbg
 		 * \brief main plugin function
 		 */
 		virtual bool idaapi run(size_t) override;
+
+		/*!
+		* \brief	add the actions to the Debug toolbar
+		*/
+		virtual void showActions();
+
+		/*!
+		* \brief	removes the actions from the Debug toolbar
+		*/
+		virtual void hideActions();
 	};
 }
 

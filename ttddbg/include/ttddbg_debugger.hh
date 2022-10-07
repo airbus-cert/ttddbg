@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include "ttddbg_logger.hh"
 #include "ttddbg_debugger_manager_interface.hh"
+#include "ttddbg_plugin.hh"
 
 namespace ttddbg 
 {

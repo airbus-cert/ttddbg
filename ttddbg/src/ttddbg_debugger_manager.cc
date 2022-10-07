@@ -55,12 +55,14 @@ namespace ttddbg
 	/**********************************************************************/
 	ssize_t DebuggerManager::onInit(std::string& hostname, int portNumber, std::string& password, qstring* errBuf)
 	{
+		m_plugin->showActions();
 		return DRC_OK;
 	}
 
 	/**********************************************************************/
 	ssize_t DebuggerManager::OnTermDebugger()
 	{
+		m_plugin->hideActions();
 		return DRC_OK;
 	}
 
@@ -76,7 +78,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	ssize_t DebuggerManager::onStartProcess(const char* path, const char* args, const char* startdir, uint32 dbg_proc_flags, const char* input_path, uint32 input_file_crc32, qstring* errbuf)
-	{	
+	{
 		m_isForward = true;
 		m_targetImagePath = input_path;
 
