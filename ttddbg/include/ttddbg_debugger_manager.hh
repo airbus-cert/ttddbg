@@ -5,6 +5,7 @@
 #include "ttddbg_logger.hh"
 #include "ttddbg_event_deque.hh"
 #include "ttddbg_position_chooser.hh"
+#include "ttddbg_plugin.hh"
 #include <deque>
 #include <memory>
 #include <Windows.h>
@@ -99,6 +100,12 @@ namespace ttddbg
 		std::filesystem::path m_targetImagePath;
 
 		/*!
+		* \brief	Reference to the Plugin.
+		*			Used to hide & show toolbar buttons
+		*/
+		std::shared_ptr<Plugin> m_plugin;
+
+		/*!
 		 * \brief	use to known if the current module is the one currently reversed
 		 * \param	module	module to process
 		 * \return	true if the TTD module is the one loaded into IDA
@@ -117,7 +124,7 @@ namespace ttddbg
 		 * \brief	ctor
 		 * \param	logger	logger use to print message
 		 */
-		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger, Arch arch);
+		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger, Arch arch, std::shared_ptr<Plugin> plugin);
 
 		/*!
 		 * \brief	First state of the automata
