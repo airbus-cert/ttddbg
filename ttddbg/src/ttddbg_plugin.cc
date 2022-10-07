@@ -30,7 +30,7 @@ ttddbg::Plugin::Plugin() :
 		BackwardStateRequest::actionLabel,
 		&m_backwardAction,
 		this,
-		nullptr,
+		BackwardStateRequest::actionHotkey,
 		nullptr,
 		load_custom_icon(resumebackwards_png, resumebackwards_png_length, "PNG")
 	)),
@@ -39,7 +39,7 @@ ttddbg::Plugin::Plugin() :
 		OpenPositionChooserAction::actionLabel,
 		&m_positionChooserAction,
 		this,
-		nullptr,
+		OpenPositionChooserAction::actionHotkey,
 		nullptr,
 		185			// timeline Icon
 	)),
@@ -48,7 +48,7 @@ ttddbg::Plugin::Plugin() :
 		BackwardSingleStepRequest::actionLabel,
 		&m_backwardSingleAction,
 		this,
-		nullptr,
+		BackwardSingleStepRequest::actionHotkey,
 		nullptr,
 		load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
 	))
