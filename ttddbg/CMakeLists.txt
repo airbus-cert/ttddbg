@@ -18,6 +18,8 @@ set(ttddbg_STATIC_SRC
 	src/ttddbg_strings.cc
 	src/ttddbg_action.cc
 	src/ttddbg_position_chooser.cc
+	src/ttddbg_hooks.cc
+	src/ttddbg_tracer.cc
 )
 
 set(ttddbg_STATIC_INCLUDE
@@ -39,6 +41,8 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_x86_registers.hh
 	include/single_step_icon.hh
 	include/resume_backwards_icon.hh
+	include/ttddbg_hooks.hh
+	include/ttddbg_tracer.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})

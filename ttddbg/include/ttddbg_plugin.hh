@@ -5,6 +5,7 @@
 #include <idp.hpp>
 #include "ttddbg_action.hh"
 #include "ttddbg_position_chooser.hh"
+#include "ttddbg_hooks.hh"
 
 namespace ttddbg 
 {
@@ -33,6 +34,11 @@ namespace ttddbg
 		 */
 		BackwardSingleStepRequest m_backwardSingleAction;
 		const action_desc_t m_backwardSingleActionDesc;
+
+		/*!
+		* \brief	Hooks manager (used to add action to context menus)
+		*/
+		Hooks hooks;
 
 	public:
 		/*!

@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ttddbg_debugger_manager.hh"
 #include "ttddbg_strings.hh"
+#include "ttddbg_tracer.hh"
 #include <idp.hpp>
 #include <ida.hpp>
 #include <segment.hpp>
@@ -127,6 +128,9 @@ namespace ttddbg
 		
 		// Init cursor at the first position
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
+
+		// Init the function tracer
+		FunctionTracer::getInstance()->setCursor(m_cursor);
 
 		m_events.addProcessStartEvent(
 			m_processId,

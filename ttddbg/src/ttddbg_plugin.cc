@@ -22,6 +22,7 @@
 #include "ttddbg_debugger_x86_64.hh"
 #include "single_step_icon.hh"
 #include "resume_backwards_icon.hh"
+#include "ttddbg_hooks.hh"
 
 /**********************************************************************/
 ttddbg::Plugin::Plugin() : 
@@ -56,6 +57,8 @@ ttddbg::Plugin::Plugin() :
 	register_action(m_backwardActionDesc);
 	register_action(m_positionChooserActionDesc);
 	register_action(m_backwardSingleActionDesc);
+
+	hooks.registerHooks();
 	
 	//showActions();
 }
