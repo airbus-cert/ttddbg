@@ -47,7 +47,7 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
-	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, std::shared_ptr<Plugin> plugin)
+	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, Plugin *plugin)
 		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
 	{
 	}
