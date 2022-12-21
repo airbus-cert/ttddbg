@@ -103,7 +103,7 @@ namespace ttddbg
 		* \brief	Reference to the Plugin.
 		*			Used to hide & show toolbar buttons
 		*/
-		std::shared_ptr<Plugin> m_plugin;
+		Plugin *m_plugin;
 
 		/*!
 		 * \brief	use to known if the current module is the one currently reversed
@@ -124,7 +124,7 @@ namespace ttddbg
 		 * \brief	ctor
 		 * \param	logger	logger use to print message
 		 */
-		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger, Arch arch, std::shared_ptr<Plugin> plugin);
+		explicit DebuggerManager(std::shared_ptr< ttddbg::Logger> logger, Arch arch, Plugin *plugin);
 
 		/*!
 		 * \brief	First state of the automata

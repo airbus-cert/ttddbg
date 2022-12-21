@@ -20,7 +20,7 @@ namespace ttddbg
 		 * \brief	ctor
 		 * \param	logger	logger interface to print informations messages
 		 */
-		explicit DebuggerX86_64(std::shared_ptr<ttddbg::Logger> logger, std::shared_ptr<Plugin> plugin);
+		explicit DebuggerX86_64(std::shared_ptr<ttddbg::Logger> logger, Plugin *plugin);
 	};
 
 	/*!
@@ -32,7 +32,7 @@ namespace ttddbg
 		/*!
 		 * \brief	ctor
 		 */
-		explicit DebuggerManagerX86_64(std::shared_ptr<ttddbg::Logger> logger, std::shared_ptr<Plugin> plugin);
+		explicit DebuggerManagerX86_64(std::shared_ptr<ttddbg::Logger> logger, Plugin *plugin);
 
 		/*!
 		 * \brief	use to inform the debugger to read register state

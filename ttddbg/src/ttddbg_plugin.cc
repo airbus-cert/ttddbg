@@ -97,7 +97,7 @@ static plugmod_t* idaapi ttddbg_init(void)
 	auto logger = std::make_shared<ttddbg::IdaLogger>();
 	try
 	{
-		auto plg = std::make_shared<ttddbg::Plugin>();
+		auto plg = new ttddbg::Plugin();
 		if (inf_is_64bit())
 		{
 			dbg = new ttddbg::DebuggerX86_64(logger, plg);
@@ -106,7 +106,7 @@ static plugmod_t* idaapi ttddbg_init(void)
 		{
 			dbg = new ttddbg::DebuggerX86(logger, plg);
 		}
-		return plg.get();
+		return plg;
 	}
 	catch (std::exception& e)
 	{

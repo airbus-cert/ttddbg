@@ -33,7 +33,7 @@ namespace ttddbg
 	};
 
 	/**********************************************************************/
-	DebuggerManagerX86_64::DebuggerManagerX86_64(std::shared_ptr<ttddbg::Logger> logger, std::shared_ptr<Plugin> plugin)
+	DebuggerManagerX86_64::DebuggerManagerX86_64(std::shared_ptr<ttddbg::Logger> logger, Plugin *plugin)
 		: DebuggerManager(logger, Arch::ARCH_64_BITS, plugin)
 	{
 
@@ -74,7 +74,7 @@ namespace ttddbg
 
 
 	/**********************************************************************/
-	DebuggerX86_64::DebuggerX86_64(std::shared_ptr< ttddbg::Logger> logger, std::shared_ptr<Plugin> plugin)
+	DebuggerX86_64::DebuggerX86_64(std::shared_ptr< ttddbg::Logger> logger, Plugin *plugin)
 		: Debugger(logger, std::make_unique<DebuggerManagerX86_64>(logger, plugin))
 	{
 		name = "ttddbg_x86_64";
