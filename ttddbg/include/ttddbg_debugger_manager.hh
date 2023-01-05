@@ -6,6 +6,7 @@
 #include "ttddbg_event_deque.hh"
 #include "ttddbg_position_chooser.hh"
 #include "ttddbg_plugin.hh"
+#include "ttddbg_tracer_choosers.hh"
 #include <deque>
 #include <memory>
 #include <Windows.h>
@@ -74,6 +75,11 @@ namespace ttddbg
 		 * \brief	State chooser window
 		 */
 		PositionChooser *m_positionChooser;
+
+		/*!
+		* \brief	Traced functions chooser
+		*/
+		TracerTraceChooser *m_traceChooser;
 
 		/*!
 		* \brief	The next position to which the cursor should go. If it is {0, 0}, continue as normal.
@@ -265,6 +271,12 @@ namespace ttddbg
 		 * \brief	Open the timeline
 		 */
 		void openPositionChooser() override;
+
+		/*
+		* \brief	Open the traced functions window
+		*/
+		void openTraceChooser() override;
+		void refreshTraceChooser();
 
 		void setNextPosition(TTD::Position newPos) override;
 

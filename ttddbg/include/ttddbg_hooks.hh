@@ -14,7 +14,9 @@ namespace ttddbg {
 	class Hooks {
 	public:
 		Hooks();
+		~Hooks();
 		void registerHooks();
+		void unregisterHooks();
 
 		// UI Hooks
 		void ui_finish_populating_widget_popup(TWidget* widget, TPopupMenu* popup_handle, const action_activation_ctx_t* ctx);

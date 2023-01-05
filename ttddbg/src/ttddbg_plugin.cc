@@ -52,11 +52,21 @@ ttddbg::Plugin::Plugin() :
 		BackwardSingleStepRequest::actionHotkey,
 		nullptr,
 		load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
+	)),
+	m_traceChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		OpenTraceChooserAction::actionName,
+		OpenTraceChooserAction::actionLabel,
+		&m_traceChooserAction,
+		this,
+		OpenTraceChooserAction::actionLabel,
+		nullptr,
+		-1
 	))
 {
 	register_action(m_backwardActionDesc);
 	register_action(m_positionChooserActionDesc);
 	register_action(m_backwardSingleActionDesc);
+	register_action(m_traceChooserActionDesc);
 
 	hooks.registerHooks();
 	
@@ -69,6 +79,9 @@ ttddbg::Plugin::~Plugin()
 	unregister_action(m_backwardAction.actionName);
 	unregister_action(m_positionChooserAction.actionName);
 	unregister_action(m_backwardSingleAction.actionName);
+	unregister_action(m_traceChooserAction.actionName);
+
+	hooks.unregisterHooks();
 }
 
 void ttddbg::Plugin::showActions()
@@ -76,6 +89,7 @@ void ttddbg::Plugin::showActions()
 	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
 }
 
 void ttddbg::Plugin::hideActions()
@@ -83,6 +97,7 @@ void ttddbg::Plugin::hideActions()
 	detach_action_from_toolbar("DebugToolBar", m_backwardActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
 }
 
 /**********************************************************************/

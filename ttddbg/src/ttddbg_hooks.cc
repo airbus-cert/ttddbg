@@ -12,10 +12,21 @@ namespace ttddbg {
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_traceFunc", "Trace function in TTD", m_actionHandler, nullptr, "", "", -1, 0));
 	}
 
+	Hooks::~Hooks() {
+		unregister_action("ttddbg_traceFunc");
+	}
+
 	void Hooks::registerHooks() {
 		bool ok = hook_to_notification_point(HT_UI, &onUINotification, this);
 		if (!ok) {
 			msg("Error hooking to UI notifications\n");
+		}
+	}
+
+	void Hooks::unregisterHooks() {
+		bool ok = unhook_from_notification_point(HT_UI, &onUINotification, this);
+		if (!ok) {
+			msg("Error unhooking from UI notifications\n");
 		}
 	}
 
@@ -71,6 +82,10 @@ namespace ttddbg {
 	/***************************************************************************/
 	int TraceActionHandler::activate(action_activation_ctx_t* ctx) {
 		func_t* func = get_func(this->ea);
+		if (func == nullptr) {
+			warning("Cannot trace this function: function not found");
+			return 0;
+		}
 		FunctionTracer::getInstance()->traceFunction(func);
 		return 0;
 

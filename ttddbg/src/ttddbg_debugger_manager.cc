@@ -49,7 +49,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, Plugin *plugin)
-		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
 	{
 	}
 
@@ -64,6 +64,7 @@ namespace ttddbg
 	ssize_t DebuggerManager::OnTermDebugger()
 	{
 		m_plugin->hideActions();
+		FunctionTracer::destroy();
 		return DRC_OK;
 	}
 
@@ -131,6 +132,9 @@ namespace ttddbg
 
 		// Init the function tracer
 		FunctionTracer::getInstance()->setCursor(m_cursor);
+		FunctionTracer::getInstance()->setNewTraceCallback([this](func_t* func) {
+			this->refreshTraceChooser();
+		});
 
 		m_events.addProcessStartEvent(
 			m_processId,
@@ -494,6 +498,19 @@ namespace ttddbg
 	void DebuggerManager::openPositionChooser() {
 		if (m_positionChooser != nullptr) {
 			m_positionChooser->choose();
+		}
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::openTraceChooser() {
+		if (m_traceChooser != nullptr) {
+			m_traceChooser->choose();
+		}
+	}
+
+	void DebuggerManager::refreshTraceChooser() {
+		if (m_traceChooser != nullptr) {
+			m_traceChooser->choose();
 		}
 	}
 
