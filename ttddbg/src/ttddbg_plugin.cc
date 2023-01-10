@@ -61,12 +61,22 @@ ttddbg::Plugin::Plugin() :
 		OpenTraceChooserAction::actionLabel,
 		nullptr,
 		-1
+	)),
+	m_traceEventChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		OpenTraceEventChooserAction::actionName,
+		OpenTraceEventChooserAction::actionLabel,
+		&m_traceEventChooserAction,
+		this, 
+		OpenTraceEventChooserAction::actionLabel,
+		nullptr,
+		-1
 	))
 {
 	register_action(m_backwardActionDesc);
 	register_action(m_positionChooserActionDesc);
 	register_action(m_backwardSingleActionDesc);
 	register_action(m_traceChooserActionDesc);
+	register_action(m_traceEventChooserActionDesc);
 
 	hooks.registerHooks();
 	
@@ -80,6 +90,7 @@ ttddbg::Plugin::~Plugin()
 	unregister_action(m_positionChooserAction.actionName);
 	unregister_action(m_backwardSingleAction.actionName);
 	unregister_action(m_traceChooserAction.actionName);
+	unregister_action(m_traceEventChooserAction.actionName);
 
 	hooks.unregisterHooks();
 }
@@ -90,6 +101,7 @@ void ttddbg::Plugin::showActions()
 	attach_action_to_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
 }
 
 void ttddbg::Plugin::hideActions()
@@ -98,6 +110,7 @@ void ttddbg::Plugin::hideActions()
 	detach_action_from_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
 }
 
 /**********************************************************************/

@@ -49,7 +49,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, Plugin *plugin)
-		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_eventChooser(new TracerEventChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
 	{
 	}
 
@@ -131,9 +131,13 @@ namespace ttddbg
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
 
 		// Init the function tracer
+		FunctionTracer::getInstance()->setEngine(m_engine);
 		FunctionTracer::getInstance()->setCursor(m_cursor);
 		FunctionTracer::getInstance()->setNewTraceCallback([this](func_t* func) {
 			this->refreshTraceChooser();
+		});
+		FunctionTracer::getInstance()->setNewEventCallback([this](FunctionInvocation) {
+			this->refreshTraceEventsChooser();
 		});
 
 		m_events.addProcessStartEvent(
@@ -394,8 +398,6 @@ namespace ttddbg
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
-
-		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
@@ -409,8 +411,6 @@ namespace ttddbg
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
-
-		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
@@ -510,7 +510,20 @@ namespace ttddbg
 
 	void DebuggerManager::refreshTraceChooser() {
 		if (m_traceChooser != nullptr) {
-			m_traceChooser->choose();
+			refresh_chooser(m_traceChooser->title);
+		}
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::openTraceEventsChooser() {
+		if (m_eventChooser != nullptr) {
+			m_eventChooser->choose();
+		}
+	}
+
+	void DebuggerManager::refreshTraceEventsChooser() {
+		if (m_traceChooser != nullptr) {
+			refresh_chooser(m_eventChooser->title);
 		}
 	}
 

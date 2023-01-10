@@ -82,6 +82,11 @@ namespace ttddbg
 		TracerTraceChooser *m_traceChooser;
 
 		/*!
+		* \brief	Trace events choosers
+		*/
+		TracerEventChooser* m_eventChooser;
+
+		/*!
 		* \brief	The next position to which the cursor should go. If it is {0, 0}, continue as normal.
 		*			If it is *not* {0, 0}, divert the control flow to set the position to this one, and set 
 		*			it to {0, 0} afterwards.
@@ -277,6 +282,12 @@ namespace ttddbg
 		*/
 		void openTraceChooser() override;
 		void refreshTraceChooser();
+
+		/*
+		*	\brief	Open the trace events window
+		*/
+		void openTraceEventsChooser() override;
+		void refreshTraceEventsChooser();
 
 		void setNextPosition(TTD::Position newPos) override;
 

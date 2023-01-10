@@ -11,6 +11,16 @@ namespace ttddbg {
 		ea_t ea;
 	};
 
+	struct CopyArgActionHandler : action_handler_t {
+		CopyArgActionHandler(size_t n) : argNum(n) {};
+		int activate(action_activation_ctx_t* ctx) override;
+		action_state_t update(action_update_ctx_t* ctx) override;
+
+		size_t argNum;
+		size_t eventNum;
+	};
+
+
 	class Hooks {
 	public:
 		Hooks();
@@ -23,6 +33,10 @@ namespace ttddbg {
 
 	private:
 		TraceActionHandler *m_actionHandler;
+		CopyArgActionHandler* m_copyArg1Handler;
+		CopyArgActionHandler* m_copyArg2Handler;
+		CopyArgActionHandler* m_copyArg3Handler;
+		CopyArgActionHandler* m_copyArg4Handler;
 		int count;
 	};
 

@@ -21,6 +21,7 @@ set(ttddbg_STATIC_SRC
 	src/ttddbg_hooks.cc
 	src/ttddbg_tracer.cc
 	src/ttddbg_tracer_choosers.cc
+	src/ttddbg_callconv.cc
 )
 
 set(ttddbg_STATIC_INCLUDE
@@ -45,6 +46,7 @@ set(ttddbg_STATIC_INCLUDE
 	include/ttddbg_hooks.hh
 	include/ttddbg_tracer.hh
 	include/ttddbg_tracer_choosers.hh
+	include/ttddbg_callconv.hh
 )
 
 add_library(ttddbg_static STATIC ${ttddbg_STATIC_INCLUDE} ${ttddbg_STATIC_SRC})

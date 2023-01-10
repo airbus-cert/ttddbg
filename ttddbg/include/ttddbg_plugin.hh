@@ -42,6 +42,12 @@ namespace ttddbg
 		const action_desc_t m_traceChooserActionDesc;
 
 		/*!
+		* \brief	Show the trace events GUI
+		*/
+		OpenTraceEventChooserAction m_traceEventChooserAction;
+		const action_desc_t m_traceEventChooserActionDesc;
+
+		/*!
 		* \brief	Hooks manager (used to add action to context menus)
 		*/
 		Hooks hooks;
