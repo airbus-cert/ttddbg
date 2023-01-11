@@ -167,6 +167,30 @@ namespace ttddbg {
 					value.sprnt("0x%X", ptr);
 				}
 			}
+			else if (arg.is_enum()) {
+				enum_type_data_t enumDetails;
+				bool ok = arg.get_enum_details(&enumDetails);
+				if (!ok) {
+					warning("Could not get enum details!");
+				}
+				else {
+					int arg_value = 0;
+					if (bitness == BITNESS_x64) {
+						arg_value = x64_getIntArg(&tmpCur, tinfo, i);
+					}
+					else if (bitness == BITNESS_x86) {
+						arg_value = x86_getIntArg(&tmpCur, tinfo, i);
+					}
+
+					for (size_t i = 0; i < enumDetails.size(); i++) {
+						enum_member_t member = enumDetails.at(i);
+						if (member.value == arg_value) {
+							value = member.name;
+							break;
+						}
+					}
+				}
+			}
 				
 			if (value.size() == 0){
 				value = "?";

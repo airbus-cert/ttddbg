@@ -104,7 +104,7 @@ namespace ttddbg {
 		while (c != 0) {
 			str.cat_sprnt("%c", c);
 			i++;
-			c = *(char*)readCursorMemory(cursor, offset, 1);
+			c = *(char*)readCursorMemory(cursor, offset+i, 1);
 		}
 
 		return str;
@@ -118,7 +118,7 @@ namespace ttddbg {
 		while (c != 0) {
 			str.cat_sprnt("%c", c);
 			i += 2;
-			c = *(wchar_t*)readCursorMemory(cursor, offset, 2);
+			c = *(wchar_t*)readCursorMemory(cursor, offset+i, 2);
 		}
 
 		return str;
