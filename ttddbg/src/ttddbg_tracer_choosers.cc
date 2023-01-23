@@ -9,7 +9,7 @@
 namespace ttddbg {
 	// Function trace list
 	TracerTraceChooser::TracerTraceChooser()
-		: chooser_t(CH_CAN_DEL | CH_KEEP, 2, new int[2]{20, 0}, new char* [2] {"Offset", "Function name"}, "Traced functions")
+		: chooser_t(CH_CAN_DEL | CH_KEEP | CH_CAN_INS, 2, new int[2]{20, 0}, new char* [2] {"Offset", "Function name"}, "Traced functions")
 	{}
 
 	size_t TracerTraceChooser::get_count() const {
@@ -32,9 +32,20 @@ namespace ttddbg {
 		return ALL_CHANGED;
 	}
 
+	chooser_t::cbret_t TracerTraceChooser::ins(ssize_t n) {
+		func_t *func = choose_func("Choose function to trace", 0);
+		if (func == nullptr) {
+			return NOTHING_CHANGED;
+		}
+
+		FunctionTracer::getInstance()->traceFunction(func);
+
+		return ALL_CHANGED;
+	}
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	TracerEventChooser::TracerEventChooser()
-		: chooser_t(CH_KEEP | CH_CAN_DEL, 6, new int[6] {20, 200, 50, 50, 50, 50}, new char* [6] {"Position", "Function name", "Arg1", "Arg2", "Arg3", "Arg4"}, "Tracing events")
+		: chooser_t(CH_KEEP | CH_CAN_DEL, 6, new int[6] {20, 0, 50, 50, 50, 50}, new char* [6] {"Position", "Function name", "Arg1", "Arg2", "Arg3", "Arg4"}, "Tracing events")
 	{}
 
 	size_t TracerEventChooser::get_count() const {
