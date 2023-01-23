@@ -257,19 +257,25 @@ namespace ttddbg {
 
 		qstring clip;
 		tinfo_t arg = tinfo.get_nth_arg(narg);
+		int copy_pointer_contents = ASKBTN_NO;
 		if (arg.is_ptr_or_array()) {
 			// In the case of a pointer: copy the address stored in the pointer
-			unsigned long long ptr = 0;
-			if (bitness == BITNESS_x86) {
-				ptr = x86_getIntArg(&tmpCur, tinfo, narg);
-			}
-			else if (bitness == BITNESS_x64) {
-				ptr = x64_getIntArg(&tmpCur, tinfo, narg);
-			}
+			copy_pointer_contents = ask_yn(ASKBTN_YES, "This argument is a pointer. Do you want to instead copy the address stored in the pointer?");
 
-			clip.sprnt("0x%X", ptr);
+			if (copy_pointer_contents == ASKBTN_YES) {
+				unsigned long long ptr = 0;
+				if (bitness == BITNESS_x86) {
+					ptr = x86_getIntArg(&tmpCur, tinfo, narg);
+				}
+				else if (bitness == BITNESS_x64) {
+					ptr = x64_getIntArg(&tmpCur, tinfo, narg);
+				}
+
+				clip.sprnt("0x%X", ptr);
+			}
 		}
-		else {
+
+		if (copy_pointer_contents == ASKBTN_NO) {
 			// In the case of a stack variable: copy the address of the variable on the stack
 			// Of course, this doesn't work if the variable is not on the stack (__fastcall, x64)
 			if (bitness == BITNESS_x86) {
