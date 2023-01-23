@@ -102,7 +102,7 @@ namespace ttddbg {
 		int i = 0;
 
 		while (c != 0) {
-			str.cat_sprnt("%c", c);
+			cat_char(&str, c);
 			i++;
 			c = *(char*)readCursorMemory(cursor, offset+i, 1);
 		}
@@ -116,11 +116,33 @@ namespace ttddbg {
 		int i = 0;
 
 		while (c != 0) {
-			str.cat_sprnt("%c", c);
+			cat_char(&str, c);
 			i += 2;
 			c = *(wchar_t*)readCursorMemory(cursor, offset+i, 2);
 		}
 
 		return str;
+	}
+
+	void cat_char(qstring* out, wchar_t c) {
+		switch (c) {
+		case '\n':
+			out->cat_sprnt("\\n");
+			break;
+		case '\r':
+			out->cat_sprnt("\\r");
+			break;
+		case '\t':
+			out->cat_sprnt("\\t");
+			break;
+		default:
+			if ((c >> 8) == 0) {
+				// 8-bit char
+				out->cat_sprnt("%c", c & 0xFF);
+			}
+			else {
+				out->cat_sprnt("%lc", c);
+			}
+		}
 	}
 }

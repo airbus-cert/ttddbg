@@ -13,4 +13,6 @@ namespace ttddbg {
 	M128A x64_getFloatArg(TTD::Cursor* cursor, tinfo_t tinfo, size_t n);
 	qstring readStringAt(TTD::Cursor* cursor, size_t offset);
 	qstring readWideStringAt(TTD::Cursor* cursor, size_t offset);
+
+	void cat_char(qstring* out, wchar_t c);
 }
