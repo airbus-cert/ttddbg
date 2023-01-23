@@ -9,7 +9,7 @@
 namespace ttddbg {
 	// Function trace list
 	TracerTraceChooser::TracerTraceChooser()
-		: chooser_t(CH_CAN_DEL | CH_KEEP, 2, nullptr, new char* [2] {"Function name", "Offset"}, "Traced functions")
+		: chooser_t(CH_CAN_DEL | CH_KEEP, 2, new int[2]{20, 0}, new char* [2] {"Offset", "Function name"}, "Traced functions")
 	{}
 
 	size_t TracerTraceChooser::get_count() const {
@@ -22,8 +22,8 @@ namespace ttddbg {
 		get_func_name(&fname, func->start_ea);
 		fname = demangle_name(fname.c_str(), 0);
 
-		out->at(0).sprnt(fname.c_str());
-		out->at(1).sprnt("0x%X", func->start_ea);
+		out->at(0).sprnt("0x%X", func->start_ea);
+		out->at(1).sprnt(fname.c_str());
 	}
 
 	chooser_t::cbret_t TracerTraceChooser::del(size_t n) {
@@ -34,7 +34,7 @@ namespace ttddbg {
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	TracerEventChooser::TracerEventChooser()
-		: chooser_t(CH_KEEP | CH_CAN_DEL, 6, nullptr, new char* [6] {"Position", "Function name", "Arg1", "Arg2", "Arg3", "Arg4"}, "Tracing events")
+		: chooser_t(CH_KEEP | CH_CAN_DEL, 6, new int[6] {20, 200, 50, 50, 50, 50}, new char* [6] {"Position", "Function name", "Arg1", "Arg2", "Arg3", "Arg4"}, "Tracing events")
 	{}
 
 	size_t TracerEventChooser::get_count() const {
@@ -50,7 +50,7 @@ namespace ttddbg {
 		out->at(0).sprnt("%d %d", ev.pos.Major, ev.pos.Minor);
 		out->at(1).sprnt(fname.c_str());
 		
-		for (int i = 0; i < ev.args.size(); i++) {
+		for (int i = 0; i < min(ev.args.size(), 4); i++) {
 			out->at(i + 2).sprnt("%s", ev.args[i].c_str());
 		}
 
