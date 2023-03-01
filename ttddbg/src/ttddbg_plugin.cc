@@ -60,7 +60,7 @@ ttddbg::Plugin::Plugin() :
 		this,
 		OpenTraceChooserAction::actionLabel,
 		nullptr,
-		-1
+		128
 	)),
 	m_traceEventChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
 		OpenTraceEventChooserAction::actionName,
@@ -69,7 +69,7 @@ ttddbg::Plugin::Plugin() :
 		this, 
 		OpenTraceEventChooserAction::actionLabel,
 		nullptr,
-		-1
+		73
 	))
 {
 	register_action(m_backwardActionDesc);

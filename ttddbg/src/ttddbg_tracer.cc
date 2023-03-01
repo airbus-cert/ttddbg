@@ -15,18 +15,40 @@
 
 namespace ttddbg {
 	void callCallback(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView* thread_view) {
-		if (addr_ret == 0) {
-			return;
-		}
-		
-		if (FunctionTracer::getInstance()->isEATraced(addr_func)) {
-			func_t* func = get_func(addr_func);
-			TTD::Position* position = thread_view->IThreadView->GetPosition(thread_view);
+		if (addr_ret != 0) {
+			// Case 1: callback because we executed a "call" instruction
+			//	addr_func = argument to "call" (address)
+			//	addr_ret = where we will "ret" to (the instruction right after "call")
 
-			FunctionInvocation ev{ 0 };
-			ev.func = func;
-			ev.pos = *position;
-			FunctionTracer::getInstance()->recordCall(ev);
+			if (FunctionTracer::getInstance()->isEATraced(addr_func)) {
+				func_t* func = get_func(addr_func);
+				TTD::Position* position = thread_view->IThreadView->GetPosition(thread_view);
+
+				FunctionInvocation ev{ 0 };
+				ev.func = func;
+				ev.pos = *position;
+				FunctionTracer::getInstance()->recordCall(ev);
+			}
+
+		}
+		else {
+			// Case 2: callback because we executed a "ret" instruction
+			//	addr_func = address to the next instruction (after the "ret")
+			// NOTE: the Program Counter is still at the "ret" instruction!
+
+			TTD::Position* position = thread_view->IThreadView->GetPosition(thread_view);
+			TTD::GuestAddress pc = thread_view->IThreadView->GetProgramCounter(thread_view);
+
+			func_t* func = get_func(pc);
+			if (func == nullptr) {
+				return;
+			}
+
+			if (!FunctionTracer::getInstance()->isEATraced(func->start_ea)) {
+				return;
+			}
+			
+			FunctionTracer::getInstance()->recordRet(func->start_ea, *position);
 		}
 	}
 
@@ -38,7 +60,7 @@ namespace ttddbg {
 
 	void FunctionTracer::destroy() {
 		if (FunctionTracer::c_instance != nullptr) {
-			FunctionTracer::getInstance()->m_cursor->SetCallReturnCallback(NULL, 0);
+			//FunctionTracer::getInstance()->m_cursor->SetCallReturnCallback(NULL, 0);
 			delete FunctionTracer::c_instance;
 			FunctionTracer::c_instance = NULL;
 		}
@@ -209,6 +231,112 @@ namespace ttddbg {
 		}
 	}
 
+	void FunctionTracer::recordRet(ea_t function_addr, TTD::Position pos)
+	{	
+		func_t* func = get_func(function_addr);
+		int bitness = get_func_bitness(func);
+		tinfo_t tinfo;
+		get_tinfo(&tinfo, func->start_ea);
+
+		TTD::Cursor tmpCur = m_engine.NewCursor();
+		tmpCur.SetPosition(&pos);
+
+		qstring mangled_name, func_name;
+		get_func_name(&mangled_name, func->start_ea);
+		func_name = demangle_name(mangled_name.c_str(), 0);
+
+		tinfo_t rettype = tinfo.get_rettype();
+		
+		qstring value;
+		qstring type_name;
+
+		rettype.print(&type_name);
+
+		if (rettype.is_int()) {
+			if (bitness == BITNESS_x64) {
+				value.sprnt("%d", tmpCur.GetContextx86_64()->Rax);
+			}
+			else if (bitness == BITNESS_x86) {
+				value.sprnt("%d", tmpCur.GetContextx86()->Eax);
+			}
+		}
+		else if (rettype.is_ptr_or_array()) {
+			unsigned long long ptr;
+			if (bitness == BITNESS_x64) {
+				ptr = tmpCur.GetContextx86_64()->Rax;
+			}
+			else if (bitness == BITNESS_x86) {
+				ptr = tmpCur.GetContextx86()->Eax;
+			}
+			else {
+				msg("Invalid bitness: %d\n", bitness);
+				return;
+			}
+
+			tinfo_t pointed = rettype.get_ptrarr_object();
+			qstring pointed_type;
+			pointed.print(&pointed_type);
+			pointed_type.replace("const ", "");
+
+			if (pointed.is_char()) {
+				value = readStringAt(&tmpCur, ptr);
+				value.sprnt("\"%s\"", value.c_str());
+			}
+			else if (pointed_type == "wchar_t") {
+				value = readWideStringAt(&tmpCur, ptr);
+				value.sprnt("\"%s\"", value.c_str());
+			}
+			else {
+				value.sprnt("0x%X", ptr);
+			}
+		}
+		else if (rettype.is_enum()) {
+			enum_type_data_t enumDetails;
+			bool ok = rettype.get_enum_details(&enumDetails);
+			if (!ok) {
+				warning("Could not get enum details!");
+			}
+			else {
+				int arg_value = 0;
+				if (bitness == BITNESS_x64) {
+					arg_value = tmpCur.GetContextx86_64()->Rax;
+				}
+				else if (bitness == BITNESS_x86) {
+					arg_value = tmpCur.GetContextx86()->Eax;
+				}
+
+				for (size_t i = 0; i < enumDetails.size(); i++) {
+					enum_member_t member = enumDetails.at(i);
+					if (member.value == arg_value) {
+						value = member.name;
+						break;
+					}
+				}
+			}
+		}
+
+		if (value.size() == 0) {
+			value = "?";
+		}
+
+		value.sprnt("(%s)%s", type_name.c_str(), value.c_str());
+
+		FunctionInvocation ev;
+		ev.pos = pos;
+		ev.func = func;
+		ev.args = std::vector<qstring>();
+		ev.is_return = true;
+
+		ev.args.push_back(value);
+
+		m_events.push_back(ev);
+		sortEvents();
+
+		if (m_cbNewEvent != nullptr) {
+			m_cbNewEvent(ev);
+		}
+	}
+
 	/*****************************************************************/
 
 	size_t FunctionTracer::countTraced() {
@@ -305,7 +433,11 @@ namespace ttddbg {
 			}
 		}
 
-		// Copy "clip" to the system clipboard
+		setClipboardContent(clip);
+	}
+
+	void FunctionTracer::setClipboardContent(qstring s)
+	{
 		// Source: https://learn.microsoft.com/en-us/windows/win32/dataxchg/using-the-clipboard#copying-information-to-the-clipboard
 		if (!OpenClipboard(NULL)) {
 			warning("Could not open clipboard!");
@@ -314,7 +446,7 @@ namespace ttddbg {
 		EmptyClipboard();
 
 		HGLOBAL hglbCopy = GlobalAlloc(GMEM_MOVEABLE,
-			(clip.size() + 1) * sizeof(TCHAR));
+			(s.size() + 1) * sizeof(TCHAR));
 		if (hglbCopy == NULL)
 		{
 			CloseClipboard();
@@ -322,11 +454,10 @@ namespace ttddbg {
 		}
 
 		LPTSTR  lptstrCopy = (LPTSTR)GlobalLock(hglbCopy);
-		memcpy(lptstrCopy, clip.c_str(),
-			clip.size() * sizeof(TCHAR));
-		lptstrCopy[clip.size()] = (TCHAR)0;    // null character 
+		memcpy(lptstrCopy, s.c_str(),
+			s.size() * sizeof(TCHAR));
+		lptstrCopy[s.size()] = (TCHAR)0;    // null character 
 		GlobalUnlock(hglbCopy);
-
 
 		SetClipboardData(CF_TEXT, hglbCopy);
 

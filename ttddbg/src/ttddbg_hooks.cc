@@ -12,12 +12,14 @@ namespace ttddbg {
 		m_copyArg2Handler = new CopyArgActionHandler(1);
 		m_copyArg3Handler = new CopyArgActionHandler(2);
 		m_copyArg4Handler = new CopyArgActionHandler(3);
+		//m_editArgHandler = new EditArgActionHandler();
 
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_traceFunc", "Trace function in TTD", m_actionHandler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg1", "Copy arg1 address", m_copyArg1Handler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg2", "Copy arg2 address", m_copyArg2Handler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg3", "Copy arg3 address", m_copyArg3Handler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg4", "Copy arg4 address", m_copyArg4Handler, nullptr, "", "", -1, 0));
+		//register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_editArg", "Edit an argument...", m_editArgHandler, nullptr, "", "", -1, 0));
 	}
 
 	Hooks::~Hooks() {
@@ -57,6 +59,8 @@ namespace ttddbg {
 	}
 
 	void Hooks::ui_finish_populating_widget_popup(TWidget* widget, TPopupMenu* popup_handle, const action_activation_ctx_t* ctx) {
+		//msg("[hooks] Type: %d | Title: %s\n", ctx->widget_type, ctx->widget_title.c_str());
+		
 		// Case 1 : "Module: " choosers, containing a bunch of DLL functions
 		if (ctx->widget_type == BWN_CHOOSER && ctx->widget_title.length() > 8 && ctx->widget_title.substr(0, 8) == "Module: ") {
 
@@ -102,8 +106,6 @@ namespace ttddbg {
 
 			return;
 		}
-
-		msg("[hooks] Type: %d | Title: %s\n", ctx->widget_type, ctx->widget_title.c_str());
 
 		// Case 4: We're in the "Tracing events" window: add option to copy argument addresses
 		if (ctx->widget_title == "Tracing events") {

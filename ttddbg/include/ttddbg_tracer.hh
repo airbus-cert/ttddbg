@@ -15,6 +15,7 @@ namespace ttddbg {
 	struct FunctionInvocation {
 		func_t* func;
 		TTD::Position pos;
+		bool is_return = false;
 
 		std::vector<qstring> args;
 	};
@@ -34,9 +35,12 @@ namespace ttddbg {
 		bool isEATraced(ea_t);
 
 		void recordCall(FunctionInvocation);
+		void recordRet(ea_t func_addr, TTD::Position);
 
 		void setNewTraceCallback(std::function<void(func_t*)>);
 		void setNewEventCallback(std::function<void(FunctionInvocation)>);
+
+		void setClipboardContent(qstring);
 
 		// View into the list of traced functions
 		size_t countTraced();
@@ -55,8 +59,8 @@ namespace ttddbg {
 		
 		std::shared_ptr<TTD::Cursor> m_cursor;
 		TTD::ReplayEngine m_engine;
-		std::vector<ea_t> m_traces;
 
+		std::vector<ea_t> m_traces;
 		std::vector<FunctionInvocation> m_events;
 
 		std::function<void(func_t*)> m_cbNewTrace;

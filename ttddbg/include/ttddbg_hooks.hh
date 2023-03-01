@@ -20,6 +20,13 @@ namespace ttddbg {
 		size_t eventNum;
 	};
 
+	struct EditArgActionHandler : action_handler_t {
+		int activate(action_activation_ctx_t* ctx) override;
+		action_state_t update(action_update_ctx_t* ctx) override;
+
+		size_t eventNum;
+	};
+
 
 	class Hooks {
 	public:
@@ -37,6 +44,7 @@ namespace ttddbg {
 		CopyArgActionHandler* m_copyArg2Handler;
 		CopyArgActionHandler* m_copyArg3Handler;
 		CopyArgActionHandler* m_copyArg4Handler;
+		EditArgActionHandler* m_editArgHandler;
 		int count;
 	};
 

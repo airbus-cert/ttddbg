@@ -10,7 +10,9 @@ namespace ttddbg {
 	// Function trace list
 	TracerTraceChooser::TracerTraceChooser()
 		: chooser_t(CH_CAN_DEL | CH_KEEP | CH_CAN_INS, 2, new int[2]{20, 0}, new char* [2] {"Offset", "Function name"}, "Traced functions")
-	{}
+	{
+		this->icon = 128;
+	}
 
 	size_t TracerTraceChooser::get_count() const {
 		return FunctionTracer::getInstance()->countTraced();
@@ -46,7 +48,9 @@ namespace ttddbg {
 	//////////////////////////////////////////////////////////////////////////////////////
 	TracerEventChooser::TracerEventChooser()
 		: chooser_t(CH_KEEP | CH_CAN_DEL, 6, new int[6] {20, 0, 50, 50, 50, 50}, new char* [6] {"Position", "Function name", "Arg1", "Arg2", "Arg3", "Arg4"}, "Tracing events")
-	{}
+	{
+		this->icon = 73;
+	}
 
 	size_t TracerEventChooser::get_count() const {
 		return FunctionTracer::getInstance()->countEvents();
@@ -59,7 +63,14 @@ namespace ttddbg {
 		fname = demangle_name(fname.c_str(), 0);
 
 		out->at(0).sprnt("%d %d", ev.pos.Major, ev.pos.Minor);
-		out->at(1).sprnt(fname.c_str());
+
+		if (ev.is_return) {
+			out->at(1).sprnt("<- %s", fname.c_str());
+		}
+		else {
+			out->at(1).sprnt("%s", fname.c_str());
+		}
+		
 		
 		for (int i = 0; i < min(ev.args.size(), 4); i++) {
 			out->at(i + 2).sprnt("%s", ev.args[i].c_str());
