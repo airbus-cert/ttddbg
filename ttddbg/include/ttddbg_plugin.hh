@@ -22,6 +22,9 @@ namespace ttddbg
 		BackwardStateRequest m_backwardAction;
 		const action_desc_t m_backwardActionDesc;
 
+		FullRunActionRequest m_fullRunAction;
+		const action_desc_t m_fullRunActionDesc;
+
 
 		/*!
 		 * \brief	Show the timeline GUI

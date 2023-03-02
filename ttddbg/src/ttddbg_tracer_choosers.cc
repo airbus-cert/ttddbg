@@ -63,12 +63,13 @@ namespace ttddbg {
 		fname = demangle_name(fname.c_str(), 0);
 
 		out->at(0).sprnt("%d %d", ev.pos.Major, ev.pos.Minor);
+		out->at(1).sprnt("%s", fname.c_str());
 
 		if (ev.is_return) {
-			out->at(1).sprnt("<- %s", fname.c_str());
+			*out_icon = 57;
 		}
 		else {
-			out->at(1).sprnt("%s", fname.c_str());
+			*out_icon = 56;
 		}
 		
 		

@@ -7,6 +7,7 @@
 #include <idp.hpp>
 #include <ida.hpp>
 #include <segment.hpp>
+#include <dbg.hpp>
 
 namespace ttddbg
 {
@@ -486,6 +487,32 @@ namespace ttddbg
 	void DebuggerManager::switchWay()
 	{
 		m_isForward = !m_isForward;
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::requestFullRun()
+	{
+		TTD::Position first = *m_engine.GetFirstPosition();
+		TTD::Position last = *m_engine.GetLastPosition();
+
+		TTD::Position old = *m_cursor->GetPosition();
+		
+		FunctionTracer::getInstance()->setCursor(m_cursor);
+		m_cursor->SetPosition(&first);
+		
+		TTD::Position cur = first;
+		size_t count = 0;
+		TTD::TTD_Replay_ICursorView_ReplayResult rresult;
+
+		while (cur.Major != last.Major || cur.Minor != last.Minor) {
+			m_cursor->ReplayForward(&rresult, &last, 1);
+			cur = *m_cursor->GetPosition();
+			count++;
+		}
+
+		m_cursor->SetPosition(&old);
+
+		msg("[ttddbg] full run completed wih %d iterations\n", count);
 	}
 
 	/**********************************************************************/

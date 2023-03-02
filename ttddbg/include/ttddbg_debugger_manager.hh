@@ -268,6 +268,11 @@ namespace ttddbg
 		void switchWay() override;
 
 		/*!
+		*	\brief	Simulate a complete run, from start to finish
+		*/
+		void requestFullRun() override;
+
+		/*!
 		 * \brief	Request a single step debugging but in backward way ! 
 		 */
 		void requestBackwardsSingleStep() override;
