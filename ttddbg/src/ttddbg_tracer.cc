@@ -177,13 +177,14 @@ namespace ttddbg {
 				pointed.print(&pointed_type);
 				pointed_type.replace("const ", "");
 
+				qstring tmp;
 				if (pointed.is_char()) {
-					value = readStringAt(&tmpCur, ptr);
-					value.sprnt("\"%s\"", value.c_str());
+					tmp = readStringAt(&tmpCur, ptr);
+					value.sprnt("\"%s\"", tmp.c_str());
 				}
 				else if (pointed_type == "wchar_t") {
-					value = readWideStringAt(&tmpCur, ptr);
-					value.sprnt("\"%s\"", value.c_str());
+					tmp = readWideStringAt(&tmpCur, ptr);
+					value.sprnt("\"%s\"", tmp.c_str());
 				}
 				else {
 					value.sprnt("0x%X", ptr);
@@ -218,7 +219,8 @@ namespace ttddbg {
 				value = "?";
 			}
 
-			value.sprnt("(%s)%s", type_name.c_str(), value.c_str());
+			qstring tmp = value;
+			value.sprnt("(%s)%s", type_name.c_str(), tmp.c_str());
 			ev.args.push_back(value);
 		}
 			
@@ -278,13 +280,14 @@ namespace ttddbg {
 			pointed.print(&pointed_type);
 			pointed_type.replace("const ", "");
 
+			qstring tmp;
 			if (pointed.is_char()) {
-				value = readStringAt(&tmpCur, ptr);
-				value.sprnt("\"%s\"", value.c_str());
+				tmp = readStringAt(&tmpCur, ptr);
+				value.sprnt("\"%s\"", tmp.c_str());
 			}
 			else if (pointed_type == "wchar_t") {
-				value = readWideStringAt(&tmpCur, ptr);
-				value.sprnt("\"%s\"", value.c_str());
+				tmp = readWideStringAt(&tmpCur, ptr);
+				value.sprnt("\"%s\"", tmp.c_str());
 			}
 			else {
 				value.sprnt("0x%X", ptr);
@@ -319,7 +322,8 @@ namespace ttddbg {
 			value = "?";
 		}
 
-		value.sprnt("(%s)%s", type_name.c_str(), value.c_str());
+		qstring tmp = value;
+		value.sprnt("(%s)%s", type_name.c_str(), tmp.c_str());
 
 		FunctionInvocation ev;
 		ev.pos = pos;
@@ -434,6 +438,27 @@ namespace ttddbg {
 		}
 
 		setClipboardContent(clip);
+	}
+
+	void FunctionTracer::copyReturnValue(size_t nevent) 
+	{
+		FunctionInvocation ev = eventAt(nevent);
+		int bitness = get_func_bitness(ev.func);
+		TTD::Cursor tmpCur = m_engine.NewCursor();
+		tmpCur.SetPosition(&ev.pos);
+
+		unsigned long long ret = 0;
+		if (bitness == BITNESS_x86) {
+			ret = tmpCur.GetContextx86()->Eax;
+		}
+		else if (bitness == BITNESS_x64) {
+			ret = tmpCur.GetContextx86_64()->Rax;
+		}
+
+		qstring out;
+		out.sprnt("0x%X", ret);
+
+		setClipboardContent(out);
 	}
 
 	void FunctionTracer::setClipboardContent(qstring s)

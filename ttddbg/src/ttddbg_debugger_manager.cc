@@ -492,6 +492,8 @@ namespace ttddbg
 	/**********************************************************************/
 	void DebuggerManager::requestFullRun()
 	{
+		show_wait_box("HIDECANCEL\nPlease wait...");
+
 		TTD::Position first = *m_engine.GetFirstPosition();
 		TTD::Position last = *m_engine.GetLastPosition();
 
@@ -508,11 +510,16 @@ namespace ttddbg
 			m_cursor->ReplayForward(&rresult, &last, 1);
 			cur = *m_cursor->GetPosition();
 			count++;
+
+			if (count % 1000 == 0) {
+				replace_wait_box("HIDECANCEL\nPlease wait...%d iterations done", count);
+			}
 		}
 
 		m_cursor->SetPosition(&old);
+		hide_wait_box();
 
-		msg("[ttddbg] full run completed wih %d iterations\n", count);
+		msg("[ttddbg] full run completed with %d iterations\n", count);
 	}
 
 	/**********************************************************************/

@@ -12,9 +12,11 @@ namespace ttddbg {
 		m_copyArg2Handler = new CopyArgActionHandler(1);
 		m_copyArg3Handler = new CopyArgActionHandler(2);
 		m_copyArg4Handler = new CopyArgActionHandler(3);
+		m_copyReturnHandler = new CopyReturnValueActionHandler();
 		//m_editArgHandler = new EditArgActionHandler();
 
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_traceFunc", "Trace function in TTD", m_actionHandler, nullptr, "", "", -1, 0));
+		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyReturnValue", "Copy return value", m_copyReturnHandler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg1", "Copy arg1 address", m_copyArg1Handler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg2", "Copy arg2 address", m_copyArg2Handler, nullptr, "", "", -1, 0));
 		register_action(ACTION_DESC_LITERAL_OWNER("ttddbg_copyArg3", "Copy arg3 address", m_copyArg3Handler, nullptr, "", "", -1, 0));
@@ -28,6 +30,7 @@ namespace ttddbg {
 		unregister_action("ttddbg_copyArg2");
 		unregister_action("ttddbg_copyArg3");
 		unregister_action("ttddbg_copyArg4");
+		unregister_action("ttddbg_copyReturnValue");
 	}
 
 	void Hooks::registerHooks() {
@@ -118,20 +121,27 @@ namespace ttddbg {
 			m_copyArg2Handler->eventNum = sel;
 			m_copyArg3Handler->eventNum = sel;
 			m_copyArg4Handler->eventNum = sel;
+			m_copyReturnHandler->eventNum = sel;
 
-			size_t nargs = FunctionTracer::getInstance()->eventAt(sel).args.size();
+			FunctionInvocation inv = FunctionTracer::getInstance()->eventAt(sel);
+			size_t nargs = inv.args.size();
 
-			if (nargs > 0) {
-				attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg1", nullptr, 0);
+			if (!inv.is_return) {
+				if (nargs > 0) {
+					attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg1", nullptr, 0);
+				}
+				if (nargs > 1) {
+					attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg2", nullptr, 0);
+				}
+				if (nargs > 2) {
+					attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg3", nullptr, 0);
+				}
+				if (nargs > 3) {
+					attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg4", nullptr, 0);
+				}
 			}
-			if (nargs > 1) {
-				attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg2", nullptr, 0);
-			}
-			if (nargs > 2) {
-				attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg3", nullptr, 0);
-			}
-			if (nargs > 3) {
-				attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyArg4", nullptr, 0);
+			else {
+				attach_action_to_popup(nullptr, popup_handle, "ttddbg_copyReturnValue", nullptr, 0);
 			}
 			
 			return;
@@ -152,18 +162,16 @@ namespace ttddbg {
 
 	}
 
-
-	action_state_t TraceActionHandler::update(action_update_ctx_t* ctx) {
-		return AST_ENABLE_ALWAYS;
-	}
-
 	/***************************************************************************/
 	int CopyArgActionHandler::activate(action_activation_ctx_t* ctx) {
 		FunctionTracer::getInstance()->copyArgumentAddress(eventNum, argNum);
 		return 0;
 	}
 
-	action_state_t CopyArgActionHandler::update(action_activation_ctx_t* ctx) {
-		return AST_ENABLE_ALWAYS;
+	/***************************************************************************/
+
+	int CopyReturnValueActionHandler::activate(action_activation_ctx_t* ctx) {
+		FunctionTracer::getInstance()->copyReturnValue(eventNum);
+		return 0;
 	}
 }

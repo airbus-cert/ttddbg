@@ -50,6 +50,7 @@ namespace ttddbg {
 		size_t countEvents();
 		FunctionInvocation eventAt(int i);
 		void copyArgumentAddress(size_t nevent, size_t narg);
+		void copyReturnValue(size_t nevent);
 
 	private:
 		void sortEvents();
