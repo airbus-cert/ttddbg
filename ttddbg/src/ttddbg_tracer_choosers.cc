@@ -20,9 +20,15 @@ namespace ttddbg {
 
 	void TracerTraceChooser::get_row(qstrvec_t* out, int* out_icon, chooser_item_attrs_t* out_attrs, size_t n) const {
 		func_t* func = FunctionTracer::getInstance()->funcAt(n);
+
 		qstring fname;
 		get_func_name(&fname, func->start_ea);
-		fname = demangle_name(fname.c_str(), 0);
+		qstring demangled;
+		demangled = demangle_name(fname.c_str(), 0);
+
+		if (demangled.size() > 0) {
+			fname = demangled;
+		}
 
 		out->at(0).sprnt("0x%X", func->start_ea);
 		out->at(1).sprnt(fname.c_str());
@@ -60,7 +66,13 @@ namespace ttddbg {
 		FunctionInvocation ev = FunctionTracer::getInstance()->eventAt(n);
 		qstring fname;
 		get_func_name(&fname, ev.func->start_ea);
-		fname = demangle_name(fname.c_str(), 0);
+
+		qstring demangled;
+		demangled = demangle_name(fname.c_str(), 0);
+
+		if (demangled.size() > 0) {
+			fname = demangled;
+		}
 
 		out->at(0).sprnt("%d %d", ev.pos.Major, ev.pos.Minor);
 		out->at(1).sprnt("%s", fname.c_str());
