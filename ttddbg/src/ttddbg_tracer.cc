@@ -243,10 +243,6 @@ namespace ttddbg {
 		TTD::Cursor tmpCur = m_engine.NewCursor();
 		tmpCur.SetPosition(&pos);
 
-		qstring mangled_name, func_name;
-		get_func_name(&mangled_name, func->start_ea);
-		func_name = demangle_name(mangled_name.c_str(), 0);
-
 		tinfo_t rettype = tinfo.get_rettype();
 		
 		qstring value;
