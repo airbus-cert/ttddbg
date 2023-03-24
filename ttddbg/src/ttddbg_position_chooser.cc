@@ -10,6 +10,7 @@ namespace ttddbg {
 		: chooser_t(CH_CAN_INS | CH_CAN_DEL | CH_KEEP, 2, nullptr, new char* [2]{"Name", "Position"}, "Timeline"), m_cursor(nullptr), m_logger{ logger },m_isClosed(true)
 	{
 		loadPositions();
+		this->icon = 185;
 	}
 
 	/**********************************************************************/

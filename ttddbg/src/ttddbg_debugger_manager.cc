@@ -3,9 +3,11 @@
 #include <iostream>
 #include "ttddbg_debugger_manager.hh"
 #include "ttddbg_strings.hh"
+#include "ttddbg_tracer.hh"
 #include <idp.hpp>
 #include <ida.hpp>
 #include <segment.hpp>
+#include <dbg.hpp>
 
 namespace ttddbg
 {
@@ -48,7 +50,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, Plugin *plugin)
-		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_nextPosition{ 0 }, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_eventChooser(new TracerEventChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
 	{
 	}
 
@@ -63,6 +65,7 @@ namespace ttddbg
 	ssize_t DebuggerManager::OnTermDebugger()
 	{
 		m_plugin->hideActions();
+		FunctionTracer::destroy();
 		return DRC_OK;
 	}
 
@@ -127,6 +130,16 @@ namespace ttddbg
 		
 		// Init cursor at the first position
 		m_cursor->SetPosition(m_engine.GetFirstPosition());
+
+		// Init the function tracer
+		FunctionTracer::getInstance()->setEngine(m_engine);
+		FunctionTracer::getInstance()->setCursor(m_cursor);
+		FunctionTracer::getInstance()->setNewTraceCallback([this](func_t* func) {
+			this->refreshTraceChooser();
+		});
+		FunctionTracer::getInstance()->setNewEventCallback([this](FunctionInvocation) {
+			this->refreshTraceEventsChooser();
+		});
 
 		m_events.addProcessStartEvent(
 			m_processId,
@@ -386,8 +399,6 @@ namespace ttddbg
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
-
-		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
@@ -401,8 +412,6 @@ namespace ttddbg
 		std::set<TTD::TTD_Replay_Module*> moduleAfter = getCursorModules();
 
 		applyDifferences(threadBefore, threadAfter, moduleBefore, moduleAfter);
-
-		m_logger->info("Now at position ", m_cursor->GetPosition()->Major, " ", m_cursor->GetPosition()->Minor);
 	}
 
 	/**********************************************************************/
@@ -481,6 +490,43 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
+	void DebuggerManager::requestFullRun()
+	{
+		show_wait_box("HIDECANCEL\nPlease wait...");
+
+		TTD::Position first = *m_engine.GetFirstPosition();
+		TTD::Position last = *m_engine.GetLastPosition();
+
+		TTD::Position old = *m_cursor->GetPosition();
+		
+		FunctionTracer::getInstance()->setCursor(m_cursor);
+		m_cursor->SetPosition(&first);
+		
+		TTD::Position cur = first;
+		size_t count = 0;
+		TTD::TTD_Replay_ICursorView_ReplayResult rresult;
+
+		while (cur.Major != last.Major || cur.Minor != last.Minor) {
+			m_cursor->ReplayForward(&rresult, &last, 1);
+			cur = *m_cursor->GetPosition();
+			count++;
+
+			if (count % 1000 == 0) {
+				replace_wait_box("%d iterations done (%d%%)", count, (int)(((double)cur.Major/(double)last.Major)*100.0));
+
+				if (user_cancelled()) {
+					break;
+				}
+			}
+		}
+
+		m_cursor->SetPosition(&old);
+		hide_wait_box();
+
+		msg("[ttddbg] full run completed with %d iterations\n", count);
+	}
+
+	/**********************************************************************/
 	void DebuggerManager::requestBackwardsSingleStep()
 	{
 		m_backwardsSingleStep = true;
@@ -490,6 +536,32 @@ namespace ttddbg
 	void DebuggerManager::openPositionChooser() {
 		if (m_positionChooser != nullptr) {
 			m_positionChooser->choose();
+		}
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::openTraceChooser() {
+		if (m_traceChooser != nullptr) {
+			m_traceChooser->choose();
+		}
+	}
+
+	void DebuggerManager::refreshTraceChooser() {
+		if (m_traceChooser != nullptr) {
+			refresh_chooser(m_traceChooser->title);
+		}
+	}
+
+	/**********************************************************************/
+	void DebuggerManager::openTraceEventsChooser() {
+		if (m_eventChooser != nullptr) {
+			m_eventChooser->choose();
+		}
+	}
+
+	void DebuggerManager::refreshTraceEventsChooser() {
+		if (m_traceChooser != nullptr) {
+			refresh_chooser(m_eventChooser->title);
 		}
 	}
 

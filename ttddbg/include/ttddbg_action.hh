@@ -49,6 +49,42 @@ namespace ttddbg
 		virtual int idaapi activate(action_activation_ctx_t*) override;
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
+
+	/*!
+	 * \brief	Action use to display the traced functions chooser
+	 */
+	struct OpenTraceChooserAction : public action_handler_t
+	{
+		inline static const char* actionName = "ttddbg:ChooseTracedFunction";
+		inline static const char* actionLabel = "Traced functions";
+		inline static const char* actionHotkey = "";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
+
+	/*!
+	* \brief	Action used to display the trace events chooser
+	*/
+	struct OpenTraceEventChooserAction : public action_handler_t
+	{
+		inline static const char* actionName = "ttddbg:ChooseTraceEvent";
+		inline static const char* actionLabel = "Trace events";
+		inline static const char* actionHotkey = "";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
+
+	struct FullRunActionRequest : public action_handler_t
+	{
+		inline static const char* actionName = "ttddbg:FullRun";
+		inline static const char* actionLabel = "Full run";
+		inline static const char* actionHotkey = "";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
 }
 
 #endif

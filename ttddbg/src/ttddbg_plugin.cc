@@ -22,9 +22,10 @@
 #include "ttddbg_debugger_x86_64.hh"
 #include "single_step_icon.hh"
 #include "resume_backwards_icon.hh"
+#include "ttddbg_hooks.hh"
 
 /**********************************************************************/
-ttddbg::Plugin::Plugin() : 
+ttddbg::Plugin::Plugin() :
 	m_backwardActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
 		BackwardStateRequest::actionName,
 		BackwardStateRequest::actionLabel,
@@ -33,6 +34,15 @@ ttddbg::Plugin::Plugin() :
 		BackwardStateRequest::actionHotkey,
 		nullptr,
 		load_custom_icon(resumebackwards_png, resumebackwards_png_length, "PNG")
+	)),
+	m_fullRunActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		FullRunActionRequest::actionName,
+		FullRunActionRequest::actionLabel,
+		&m_fullRunAction,
+		this,
+		FullRunActionRequest::actionHotkey,
+		nullptr,
+		203
 	)),
 	m_positionChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
 		OpenPositionChooserAction::actionName,
@@ -51,11 +61,34 @@ ttddbg::Plugin::Plugin() :
 		BackwardSingleStepRequest::actionHotkey,
 		nullptr,
 		load_custom_icon(singlestep_png, singlestep_png_length, "PNG")
+	)),
+	m_traceChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		OpenTraceChooserAction::actionName,
+		OpenTraceChooserAction::actionLabel,
+		&m_traceChooserAction,
+		this,
+		OpenTraceChooserAction::actionLabel,
+		nullptr,
+		128
+	)),
+	m_traceEventChooserActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		OpenTraceEventChooserAction::actionName,
+		OpenTraceEventChooserAction::actionLabel,
+		&m_traceEventChooserAction,
+		this, 
+		OpenTraceEventChooserAction::actionLabel,
+		nullptr,
+		73
 	))
 {
 	register_action(m_backwardActionDesc);
+	register_action(m_fullRunActionDesc);
 	register_action(m_positionChooserActionDesc);
 	register_action(m_backwardSingleActionDesc);
+	register_action(m_traceChooserActionDesc);
+	register_action(m_traceEventChooserActionDesc);
+
+	hooks.registerHooks();
 	
 	//showActions();
 }
@@ -64,22 +97,33 @@ ttddbg::Plugin::Plugin() :
 ttddbg::Plugin::~Plugin()
 {
 	unregister_action(m_backwardAction.actionName);
+	unregister_action(m_fullRunAction.actionName);
 	unregister_action(m_positionChooserAction.actionName);
 	unregister_action(m_backwardSingleAction.actionName);
+	unregister_action(m_traceChooserAction.actionName);
+	unregister_action(m_traceEventChooserAction.actionName);
+
+	hooks.unregisterHooks();
 }
 
 void ttddbg::Plugin::showActions()
 {
 	attach_action_to_toolbar("DebugToolBar", m_backwardActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_fullRunActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
 }
 
 void ttddbg::Plugin::hideActions()
 {
 	detach_action_from_toolbar("DebugToolBar", m_backwardActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_fullRunActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_backwardSingleActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
 }
 
 /**********************************************************************/

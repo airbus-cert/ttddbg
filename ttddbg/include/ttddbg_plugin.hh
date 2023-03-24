@@ -5,6 +5,7 @@
 #include <idp.hpp>
 #include "ttddbg_action.hh"
 #include "ttddbg_position_chooser.hh"
+#include "ttddbg_hooks.hh"
 
 namespace ttddbg 
 {
@@ -21,6 +22,9 @@ namespace ttddbg
 		BackwardStateRequest m_backwardAction;
 		const action_desc_t m_backwardActionDesc;
 
+		FullRunActionRequest m_fullRunAction;
+		const action_desc_t m_fullRunActionDesc;
+
 
 		/*!
 		 * \brief	Show the timeline GUI
@@ -33,6 +37,23 @@ namespace ttddbg
 		 */
 		BackwardSingleStepRequest m_backwardSingleAction;
 		const action_desc_t m_backwardSingleActionDesc;
+
+		/*!
+		* \brief	Show the traced function GUI
+		*/
+		OpenTraceChooserAction m_traceChooserAction;
+		const action_desc_t m_traceChooserActionDesc;
+
+		/*!
+		* \brief	Show the trace events GUI
+		*/
+		OpenTraceEventChooserAction m_traceEventChooserAction;
+		const action_desc_t m_traceEventChooserActionDesc;
+
+		/*!
+		* \brief	Hooks manager (used to add action to context menus)
+		*/
+		Hooks hooks;
 
 	public:
 		/*!
