@@ -512,7 +512,7 @@ namespace ttddbg
 			count++;
 
 			if (count % 1000 == 0) {
-				replace_wait_box("Please wait...%d iterations done\n%d / %d (%d%%)", count, cur.Major, last.Major, (int)(((double)cur.Major/(double)last.Major)*100.0));
+				replace_wait_box("%d iterations done (%d%%)", count, (int)(((double)cur.Major/(double)last.Major)*100.0));
 
 				if (user_cancelled()) {
 					break;

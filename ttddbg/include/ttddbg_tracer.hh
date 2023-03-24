@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <mutex>
 
 #include <pro.h>
 #include <funcs.hpp>
@@ -58,8 +59,10 @@ namespace ttddbg {
 		FunctionTracer();
 		static FunctionTracer* c_instance;
 		
-		std::shared_ptr<TTD::Cursor> m_cursor;
 		TTD::ReplayEngine m_engine;
+
+		std::mutex m_safeTraces;
+		std::mutex m_safeEvents;
 
 		std::vector<ea_t> m_traces;
 		std::vector<FunctionInvocation> m_events;

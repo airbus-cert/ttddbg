@@ -83,8 +83,7 @@ namespace ttddbg {
 	}
 
 	void FunctionTracer::setCursor(std::shared_ptr<TTD::Cursor> cursor) {
-		m_cursor = cursor;
-		m_cursor->SetCallReturnCallback(&callCallback, 0);
+		cursor->SetCallReturnCallback(&callCallback, 0);
 	}
 
 	void FunctionTracer::setEngine(TTD::ReplayEngine engine) {
@@ -92,6 +91,8 @@ namespace ttddbg {
 	}
 
 	void FunctionTracer::traceFunction(func_t *func) {
+		std::lock_guard<std::mutex> guard(m_safeTraces);
+
 		if (isTraced(func))
 			return;
 		
@@ -104,10 +105,12 @@ namespace ttddbg {
 	}
 
 	void FunctionTracer::removeTrace(size_t n) {
+		std::lock_guard<std::mutex> guard(m_safeTraces);
 		m_traces.erase(m_traces.begin() + n);
 	}
 	
 	void FunctionTracer::removeEvent(size_t n) {
+		std::lock_guard<std::mutex> guard(m_safeEvents);
 		m_events.erase(m_events.begin() + n);
 	}
 
@@ -116,6 +119,7 @@ namespace ttddbg {
 	}
 
 	bool FunctionTracer::isEATraced(ea_t start) {
+		std::lock_guard<std::mutex> guard(m_safeTraces);
 		for (int i = 0; i < m_traces.size(); i++) {
 			ea_t ea = m_traces.at(i);
 			if (ea == start) {
@@ -125,7 +129,7 @@ namespace ttddbg {
 		return false;
 	}
 
-	void FunctionTracer::recordCall(FunctionInvocation ev) {		
+	void FunctionTracer::recordCall(FunctionInvocation ev) {
 		int bitness = get_func_bitness(ev.func);
 		tinfo_t tinfo;
 		get_tinfo(&tinfo, ev.func->start_ea);
@@ -224,8 +228,10 @@ namespace ttddbg {
 			ev.args.push_back(value);
 		}
 			
-
+		m_safeEvents.lock();
 		m_events.push_back(ev);
+		m_safeEvents.unlock();
+
 		sortEvents();
 
 		if (m_cbNewEvent != nullptr) {
@@ -329,7 +335,10 @@ namespace ttddbg {
 
 		ev.args.push_back(value);
 
+		m_safeEvents.lock();
 		m_events.push_back(ev);
+		m_safeEvents.unlock();
+
 		sortEvents();
 
 		if (m_cbNewEvent != nullptr) {
@@ -340,10 +349,12 @@ namespace ttddbg {
 	/*****************************************************************/
 
 	size_t FunctionTracer::countTraced() {
+		std::lock_guard<std::mutex> guard(m_safeTraces);
 		return m_traces.size();
 	}
 
 	func_t* FunctionTracer::funcAt(int i) {
+		std::lock_guard<std::mutex> guard(m_safeTraces);
 		ea_t ea = m_traces.at(i);
 		return get_func(ea);
 	}
@@ -351,14 +362,17 @@ namespace ttddbg {
 	/*****************************************************************/
 
 	size_t FunctionTracer::countEvents() {
+		std::lock_guard<std::mutex> guard(m_safeEvents);
 		return m_events.size();
 	}
 
 	FunctionInvocation FunctionTracer::eventAt(int i) {
+		std::lock_guard<std::mutex> guard(m_safeEvents);
 		return m_events.at(i);
 	}
 
 	void FunctionTracer::sortEvents() {
+		std::lock_guard<std::mutex> guard(m_safeEvents);
 		sort(m_events.begin(), m_events.end(), [](auto p1, auto p2) -> bool {
 			return (p1.pos < p2.pos);
 		});
