@@ -1,5 +1,4 @@
-
-
+option(IDA_SDK_PRO "Set for IDA PRO SDK" OFF)
 if(IDA_SDK_SOURCE_DIR)
 	find_path(IDA_SDK_SOURCE_ROOT
 	NAMES include/ida.hpp
@@ -19,13 +18,19 @@ Could not find IDA SDK headers. Make sure IDA_SDK_SOURCE_DIR is set to the root 
 #######################################################
 ")
 
+if(IDA_SDK_PRO)
+    set(IDA_SDK_VERSION "_pro")
+else()
+	set(IDA_SDK_VERSION "")
+endif(IDA_SDK_PRO)
+
 mark_as_advanced(IDA_SDK_MAIN_HEADER)
 
 if(IDA_SDK_FOUND)
 	set(IDA_SDK_INCLUDE_DIRS "${IDA_SDK_SOURCE_ROOT}/include")
 	if(WIN32)
-		set(IDA_SDK_LIBS_IDA64 "${IDA_SDK_SOURCE_ROOT}/lib/x64_win_vc_64/ida.lib")
-		set(IDA_SDK_LIBS_IDA32 "${IDA_SDK_SOURCE_ROOT}/lib/x64_win_vc_32/ida.lib")
+		set(IDA_SDK_LIBS_IDA64 "${IDA_SDK_SOURCE_ROOT}/lib/x64_win_vc_64${IDA_SDK_VERSION}/ida.lib")
+		set(IDA_SDK_LIBS_IDA32 "${IDA_SDK_SOURCE_ROOT}/lib/x64_win_vc_32${IDA_SDK_VERSION}/ida.lib")
 	else()
 		set(IDA_SDK_LIBS_IDA64 "${IDA_SDK_SOURCE_ROOT}/lib/x64_linux_gcc_64/libida64.so")
 		set(IDA_SDK_LIBS_IDA32 "${IDA_SDK_SOURCE_ROOT}/lib/x64_linux_gcc_32/libida.so")
