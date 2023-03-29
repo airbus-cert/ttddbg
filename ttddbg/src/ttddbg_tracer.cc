@@ -91,11 +91,11 @@ namespace ttddbg {
 	}
 
 	void FunctionTracer::traceFunction(func_t *func) {
-		std::lock_guard<std::mutex> guard(m_safeTraces);
-
 		if (isTraced(func))
 			return;
 		
+		std::lock_guard<std::mutex> guard(m_safeTraces);
+
 		msg("[tracer] Tracing function at 0x%X\n", func->start_ea);
 		m_traces.push_back(func->start_ea);
 
