@@ -1,4 +1,4 @@
-name: Release Windows IDA 7.5
+name: Release Windows IDA 8.2
 
 on: [push]
 
@@ -18,20 +18,20 @@ jobs:
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
-      run: cmake -E make_directory ${{runner.workspace}}/build_ida_75
+      run: cmake -E make_directory ${{runner.workspace}}/build_ida_82
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
       # access regardless of the host operating system
       shell: cmd
-      working-directory: ${{runner.workspace}}/build_ida_75
+      working-directory: ${{runner.workspace}}/build_ida_82
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake ..\ttddbg -DCMAKE_BUILD_TYPE=Release -DIDA_SDK_SOURCE_DIR=c:\work\idasdk75\idasdk75 -DCPACK_PACKAGE_INSTALL_DIRECTORY="IDA Pro 7.5"
+      run: cmake ..\ttddbg -DCMAKE_BUILD_TYPE=Release -DIDA_SDK_PRO=ON -DIDA_SDK_SOURCE_DIR=c:\work\idasdk82\idasdk82 -DCPACK_PACKAGE_INSTALL_DIRECTORY="IDA Pro 8.2"
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build_ida_75
+      working-directory: ${{runner.workspace}}/build_ida_82
       shell: cmd
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --target package --config release
