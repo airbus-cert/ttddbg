@@ -1,5 +1,7 @@
 # ttddbg - Time Travel Debugging IDA plugin
 
+**⚠️ Attention IDA 8 users: using ttddbg with IDA 8 require a work-around for the moment, see [Known issues](#known-issues)**
+
 This plugin adds a new debugger to IDA which supports loading [Time Travel Debugging](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/time-travel-debugging-overview) traces generated using WinDBG Preview.
 
 ![ttddbg main window](screenshots/main_window.png)
@@ -18,11 +20,24 @@ Once installed, you can use the plugin by selecting the `ttddbg` debugger in the
 
 ![ttdbg debugger setup](screenshots/ida_ttddbg_run.png)
 
-| Icon | Action |
-|------|--------|
-|![backward_icon](screenshots/ida_backward_icon.png) | Go to previous breakpoint |
-|![single_step_icon](screenshots/ida_single_step_icon.png) | Single step backward (RIP - one instruction) |
-|![timeline_icon](screenshots/ida_timeline_icon.png) | Manage the timeline of interesting events (Threads Created/Terminated, Module Loaded/Unloaded, Exceptions, Custom) |
+| Icon                                                        | Action                                                                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| ![backward_icon](screenshots/ida_backward_icon.png)         | Go to previous breakpoint                                                                                          |
+| ![full run icon](screenshots/ida_full_run_icon.png)         | Simulate a full run of the program                                                                                 |
+| ![single_step_icon](screenshots/ida_single_step_icon.png)   | Single step backward (RIP - one instruction)                                                                       |
+| ![timeline_icon](screenshots/ida_timeline_icon.png)         | Manage the timeline of interesting events (Threads Created/Terminated, Module Loaded/Unloaded, Exceptions, Custom) |
+| ![traced functions icon](screenshots/ida_traced_icon.png)   | Manage the currently traced functions                                                                              |
+| ![trace events icon](screenshots/ida_trace_events_icon.png) | View trace events                                                                                                  |
+
+### Function tracing feature
+
+Since version 1.1.0, ttddbg supports a new feature we call "function tracing". While in the debugging view, it is possible to mark functions for tracing by right-clicking them in the *Functions* or *Module* interfaces. Once a function is traced, any call to this function, and any `return` statement, will be recorded in the new *Trace events* window.
+
+Using the function information from your reverse engineering work, ttddbg also extracts the parameters passed to the function as well as its return value. Symbols are automatically pretty-printed based on the information available to IDA, such as enum values.
+
+## Known issues
+
+- Using **IDA Pro 8.2** and this plugin leads to a crash when entering the debugger. This issue appears to be caused by an incompatibility between this plugin and the `picture_search` plugin, which is new in IDA 8. Removing `picture_search.dll` and `picture_search64.dll` from the `plugins` folder temporarily fixes this issue. The problem has been raised to Hex-Rays.
 
 ## Building the project
 
