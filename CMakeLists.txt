@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 # Project
-project(ttddbg LANGUAGES CXX VERSION 1.0.1)
+project(ttddbg LANGUAGES CXX VERSION 1.1.0)
 
 # Opions
 option(BUILD_TESTS "Build test programs" OFF)
