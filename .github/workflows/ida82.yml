@@ -28,7 +28,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake ..\ttddbg -DCMAKE_BUILD_TYPE=Release -DIDA_SDK_PRO=ON -DIDA_SDK_SOURCE_DIR=c:\work\idasdk82\idasdk82 -DCPACK_PACKAGE_INSTALL_DIRECTORY="IDA Pro 8.2"
+      run: cmake ..\ttddbg -DCMAKE_BUILD_TYPE=Release -DIDA_SDK_PRO=ON -DIDA_SDK_SOURCE_DIR=c:\work\idasdk82\idasdk_pro82 -DCPACK_PACKAGE_INSTALL_DIRECTORY="IDA Pro 8.2"
 
     - name: Build
       working-directory: ${{runner.workspace}}/build_ida_82
