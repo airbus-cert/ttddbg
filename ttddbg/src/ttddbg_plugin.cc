@@ -67,7 +67,7 @@ ttddbg::Plugin::Plugin() :
 		OpenTraceChooserAction::actionLabel,
 		&m_traceChooserAction,
 		this,
-		OpenTraceChooserAction::actionLabel,
+		OpenTraceChooserAction::actionHotkey,
 		nullptr,
 		128
 	)),
@@ -75,10 +75,19 @@ ttddbg::Plugin::Plugin() :
 		OpenTraceEventChooserAction::actionName,
 		OpenTraceEventChooserAction::actionLabel,
 		&m_traceEventChooserAction,
-		this, 
-		OpenTraceEventChooserAction::actionLabel,
+		this,
+		OpenTraceEventChooserAction::actionHotkey,
 		nullptr,
 		73
+	)),
+	m_gotoPositionActionDesc(ACTION_DESC_LITERAL_PLUGMOD(
+		GotoPositionAction::actionName,
+		GotoPositionAction::actionLabel,
+		&m_gotoPositionAction,
+		this,
+		GotoPositionAction::actionHotkey,
+		nullptr,
+		-1
 	))
 {
 	register_action(m_backwardActionDesc);
@@ -87,6 +96,7 @@ ttddbg::Plugin::Plugin() :
 	register_action(m_backwardSingleActionDesc);
 	register_action(m_traceChooserActionDesc);
 	register_action(m_traceEventChooserActionDesc);
+	register_action(m_gotoPositionActionDesc);
 
 	hooks.registerHooks();
 	
@@ -102,6 +112,7 @@ ttddbg::Plugin::~Plugin()
 	unregister_action(m_backwardSingleAction.actionName);
 	unregister_action(m_traceChooserAction.actionName);
 	unregister_action(m_traceEventChooserAction.actionName);
+	unregister_action(m_gotoPositionAction.actionName);
 
 	hooks.unregisterHooks();
 }

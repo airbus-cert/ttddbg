@@ -85,6 +85,19 @@ namespace ttddbg
 		virtual int idaapi activate(action_activation_ctx_t*) override;
 		virtual action_state_t idaapi update(action_update_ctx_t*) override;
 	};
+
+	/*!
+	* \brief	Action used to go to a specific position
+	*/
+	struct GotoPositionAction : public action_handler_t 
+	{
+		inline static const char* actionName = "ttddbg:GotoPosition";
+		inline static const char* actionLabel = "Go to position";
+		inline static const char* actionHotkey = "Ctrl+Shift+G";
+
+		virtual int idaapi activate(action_activation_ctx_t*) override;
+		virtual action_state_t idaapi update(action_update_ctx_t*) override;
+	};
 }
 
 #endif

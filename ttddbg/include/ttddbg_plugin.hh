@@ -51,6 +51,12 @@ namespace ttddbg
 		const action_desc_t m_traceEventChooserActionDesc;
 
 		/*!
+		* \brief	Ask the user for a position to go to
+		*/
+		GotoPositionAction m_gotoPositionAction;
+		const action_desc_t m_gotoPositionActionDesc;
+
+		/*!
 		* \brief	Hooks manager (used to add action to context menus)
 		*/
 		Hooks hooks;

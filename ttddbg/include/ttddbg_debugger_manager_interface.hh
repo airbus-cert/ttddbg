@@ -146,6 +146,7 @@ namespace ttddbg
 		virtual void openPositionChooser() = 0;
 		virtual void openTraceChooser() = 0;
 		virtual void openTraceEventsChooser() = 0;
+		virtual void gotoPosition() = 0;
 	};
 }
 

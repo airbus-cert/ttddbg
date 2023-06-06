@@ -296,6 +296,11 @@ namespace ttddbg
 
 		void setNextPosition(TTD::Position newPos) override;
 
+		/*!
+		* \brief	Ask the user to go to a specific position
+		*/
+		void gotoPosition() override;
+
 	private:
 
 		std::set<uint32_t> getCursorThreads();

@@ -583,6 +583,36 @@ namespace ttddbg
 	}
 
 	/**********************************************************************/
+	void DebuggerManager::gotoPosition() {
+		qstring pos;
+		bool ok = ask_str(&pos, 0, "Go to position (Major:Minor): ");
+		if (!ok) {
+			return;
+		}
+
+		int colon = pos.find(":");
+		if (colon == -1) {
+			warning("Invalid position format");
+			return;
+		}
+
+		if (colon == pos.size()) {
+			warning("Invalid position format: missing minor");
+			return;
+		}
+
+		qstring major = pos.substr(0, colon);
+		qstring minor = pos.substr(colon + 1, -1);
+
+		long lMaj = strtol(major.c_str(), NULL, 0);
+		long lMin = strtol(minor.c_str(), NULL, 0);
+
+		TTD::Position newPos{(unsigned __int64)lMaj, (unsigned __int64)lMin};
+		setNextPosition(newPos);
+		continue_process();
+	}
+
+	/**********************************************************************/
 	void DebuggerManager::populatePositionChooser() {
 		if (m_cursor == NULL) {
 			warning("The Timeline is only available while debugging.");
