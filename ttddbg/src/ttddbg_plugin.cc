@@ -87,7 +87,7 @@ ttddbg::Plugin::Plugin() :
 		this,
 		GotoPositionAction::actionHotkey,
 		nullptr,
-		-1
+		125
 	))
 {
 	register_action(m_backwardActionDesc);
@@ -125,6 +125,7 @@ void ttddbg::Plugin::showActions()
 	attach_action_to_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
 	attach_action_to_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
+	attach_action_to_toolbar("DebugToolBar", m_gotoPositionActionDesc.name);
 }
 
 void ttddbg::Plugin::hideActions()
@@ -135,6 +136,7 @@ void ttddbg::Plugin::hideActions()
 	detach_action_from_toolbar("DebugToolBar", m_positionChooserActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_traceChooserActionDesc.name);
 	detach_action_from_toolbar("DebugToolBar", m_traceEventChooserActionDesc.name);
+	detach_action_from_toolbar("DebugToolBar", m_gotoPositionActionDesc.name);
 }
 
 /**********************************************************************/
