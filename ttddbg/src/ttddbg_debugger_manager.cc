@@ -492,38 +492,50 @@ namespace ttddbg
 	/**********************************************************************/
 	void DebuggerManager::requestFullRun()
 	{
-		show_wait_box("HIDECANCEL\nPlease wait...");
+#define TTD_STEP 100000
 
-		TTD::Position first = *m_engine.GetFirstPosition();
-		TTD::Position last = *m_engine.GetLastPosition();
+		show_wait_box("HIDECANCEL\nPlease wait...");
 
 		TTD::Position old = *m_cursor->GetPosition();
 		
 		FunctionTracer::getInstance()->setCursor(m_cursor);
-		m_cursor->SetPosition(&first);
 		
-		TTD::Position cur = first;
+		TTD::Position cur;
 		size_t count = 0;
 		TTD::TTD_Replay_ICursorView_ReplayResult rresult;
 
-		while (cur.Major != last.Major || cur.Minor != last.Minor) {
-			m_cursor->ReplayForward(&rresult, &last, 1);
+		const TTD::TTD_Replay_ThreadCreatedEvent* threadCreateEvents = m_engine.GetThreadCreatedEventList();
+		const TTD::TTD_Replay_ThreadTerminatedEvent* threadTerminateEvents = m_engine.GetThreadTerminatedEventList();
+
+		for (int i = 0; i < m_engine.GetThreadCreatedEventCount(); i++) {
+			auto tCreate = threadCreateEvents[i];
+			auto tTerminate = threadTerminateEvents[i];
+
+			TTD::Position first = tCreate.pos, last = tTerminate.pos;
+			m_cursor->SetPosition(&first);
 			cur = *m_cursor->GetPosition();
-			count++;
+			count = 0;
 
-			if (count % 1000 == 0) {
-				replace_wait_box("%d iterations done (%d%%)", count, (int)(((double)cur.Major/(double)last.Major)*100.0));
+			while (cur.Major != last.Major || cur.Minor != last.Minor) {
+				m_cursor->ReplayForward(&rresult, &last, TTD_STEP);
+				cur = *m_cursor->GetPosition();
+				count++;
 
-				if (user_cancelled()) {
+				int percentage = (int)(((double)cur.Major / (double)last.Major) * 100.0);
+				replace_wait_box("Thread %d\n%d iterations done (%d%%)", i, count, percentage);
+
+				if (user_cancelled())
 					break;
-				}
 			}
+
+			if (user_cancelled())
+				break;
 		}
 
 		m_cursor->SetPosition(&old);
 		hide_wait_box();
 
-		msg("[ttddbg] full run completed with %d iterations\n", count);
+		msg("[ttddbg] full run completed\n");
 	}
 
 	/**********************************************************************/
