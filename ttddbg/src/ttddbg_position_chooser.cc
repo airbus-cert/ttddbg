@@ -63,7 +63,7 @@ namespace ttddbg {
 		auto &entry = m_positions.at(n);
 
 		out->at(0).sprnt(entry.first.c_str());
-		out->at(1).sprnt("%d %d", entry.second.Major, entry.second.Minor);
+		out->at(1).sprnt("0x%X:0x%X", entry.second.Major, entry.second.Minor);
 	}
 
 	/**********************************************************************/
@@ -74,7 +74,7 @@ namespace ttddbg {
 		}
 
 		auto pos = m_positions.at(n);
-		m_logger->info("Moving to position ", pos.first.c_str(), " at ", pos.second.Major, " ", pos.second.Minor);
+		m_logger->info("Moving to position ", pos.first.c_str(), " at ", pos.second.Major, ":", pos.second.Minor);
 		static_cast<ttddbg::Debugger*>(dbg)->getManager().setNextPosition(pos.second);
 		continue_process();
 		return BADADDR;

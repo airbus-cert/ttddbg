@@ -74,7 +74,7 @@ namespace ttddbg {
 			fname = demangled;
 		}
 
-		out->at(0).sprnt("%d %d", ev.pos.Major, ev.pos.Minor);
+		out->at(0).sprnt("0x%X:0x%X", ev.pos.Major, ev.pos.Minor);
 		out->at(1).sprnt("%s", fname.c_str());
 
 		if (ev.is_return) {

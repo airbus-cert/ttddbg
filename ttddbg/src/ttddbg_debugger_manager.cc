@@ -263,7 +263,7 @@ namespace ttddbg
 			if (m_nextPosition.Major != 0 || m_nextPosition.Minor != 0) {
 				// Special case: instead of stepping or resuming, if there is a "next position" saved,
 				// go to this position instead
-				m_logger->info("special case: next position: ", m_nextPosition.Major, " ", m_nextPosition.Minor);
+				m_logger->info("special case: next position: ", m_nextPosition.Major, ":", m_nextPosition.Minor);
 				this->applyCursor(m_nextPosition);
 				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				m_nextPosition = { 0 };
