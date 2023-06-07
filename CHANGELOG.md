@@ -1,3 +1,10 @@
+# 1.2.O
+
+* Improve the "full run" functionality
+  * Speed up the execution by stepping through 100,000 states at a time
+  * Go through each thread state
+* Add a "go to position" button to the toolbar (shortcut Ctrl+Shift+G)
+
 # 1.1.0
 * Add function tracing
   * Integrates with TTD's "CallRet callback" feature, allowing us to trace every `call` and `ret` instruction
