@@ -290,7 +290,7 @@ namespace ttddbg
 			{
 			case resume_mode_t::RESMOD_NONE:
 			{
-				this->applyCursor(-1);
+				this->applyCursor(m_maxSteps);
 				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				break;
 			}

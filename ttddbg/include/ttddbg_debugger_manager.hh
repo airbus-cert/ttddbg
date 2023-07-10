@@ -34,6 +34,10 @@ namespace ttddbg
 		};
 
 	protected:
+		/*!
+		 * \brief	maximum steps to simulate backward or forward continuation
+		 */
+		static const int m_maxSteps = -2;
 
 		/*!
 		 * \brief	Current debugger architecture
