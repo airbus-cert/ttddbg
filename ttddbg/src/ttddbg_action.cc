@@ -10,7 +10,6 @@ namespace ttddbg
 		if (dbg != nullptr)
 		{
 			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
-			static_cast<ttddbg::Debugger*>(dbg)->getManager().onSetResumeMode(0, resume_mode_t::RESMOD_NONE);
 			continue_process();
 			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
 		}
@@ -28,10 +27,8 @@ namespace ttddbg
 	{
 		if (dbg != nullptr)
 		{
-			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
-			static_cast<ttddbg::Debugger*>(dbg)->getManager().onSetResumeMode(0, resume_mode_t::RESMOD_INTO);
-			step_into();
-			static_cast<ttddbg::Debugger*>(dbg)->getManager().switchWay();
+			static_cast<ttddbg::Debugger*>(dbg)->getManager().requestBackwardsSingleStep();
+			continue_process();
 		}
 		return false;
 	}
