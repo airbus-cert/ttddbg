@@ -142,7 +142,6 @@ namespace ttddbg
 		
 		virtual void switchWay() = 0;
 		virtual void requestFullRun() = 0;
-		virtual void requestBackwardsSingleStep() = 0;
 		virtual void openPositionChooser() = 0;
 		virtual void openTraceChooser() = 0;
 		virtual void openTraceEventsChooser() = 0;

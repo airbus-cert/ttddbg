@@ -98,13 +98,6 @@ namespace ttddbg
 		TTD::Position m_nextPosition;
 
 		/*!
-		* \brief	Flag holding whether the "next action" should be a Backwards Single Step. If "true",
-		*			instead of doing the normal action, force the TTD engine to go back in time for a single
-		*			instruction. Then, set to "false".
-		*/
-		bool m_backwardsSingleStep;	
-
-		/*!
 		 * \brief	Fake process id
 		 */
 		pid_t m_processId;
@@ -275,11 +268,6 @@ namespace ttddbg
 		*	\brief	Simulate a complete run, from start to finish
 		*/
 		void requestFullRun() override;
-
-		/*!
-		 * \brief	Request a single step debugging but in backward way ! 
-		 */
-		void requestBackwardsSingleStep() override;
 
 		/*!
 		 * \brief	Open the timeline
