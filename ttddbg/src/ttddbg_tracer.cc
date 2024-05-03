@@ -210,7 +210,7 @@ namespace ttddbg {
 					}
 
 					for (size_t i = 0; i < enumDetails.size(); i++) {
-						enum_member_t member = enumDetails.at(i);
+						edm_t member = enumDetails.at(i);
 						if (member.value == arg_value) {
 							value = member.name;
 							break;
@@ -311,7 +311,7 @@ namespace ttddbg {
 				}
 
 				for (size_t i = 0; i < enumDetails.size(); i++) {
-					enum_member_t member = enumDetails.at(i);
+					edm_t member = enumDetails.at(i);
 					if (member.value == arg_value) {
 						value = member.name;
 						break;
