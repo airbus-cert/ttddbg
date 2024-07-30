@@ -50,7 +50,7 @@ namespace ttddbg
 
 	/**********************************************************************/
 	DebuggerManager::DebuggerManager(std::shared_ptr<ttddbg::Logger> logger, Arch arch, Plugin *plugin)
-		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_eventChooser(new TracerEventChooser()), m_nextPosition{0}, m_processId(1234), m_backwardsSingleStep(false), m_plugin(plugin)
+		: m_logger(logger), m_arch{ arch }, m_isForward{ true }, m_resumeMode{ resume_mode_t::RESMOD_NONE }, m_positionChooser(new PositionChooser(m_logger)), m_traceChooser(new TracerTraceChooser()), m_eventChooser(new TracerEventChooser()), m_nextPosition{0}, m_processId(1234), m_plugin(plugin)
 	{
 	}
 
@@ -267,45 +267,29 @@ namespace ttddbg
 				this->applyCursor(m_nextPosition);
 				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
 				m_nextPosition = { 0 };
-				return DRC_OK;
 			}
-
-			if (m_backwardsSingleStep) {
-				// Special case: if "m_backwardsSingleStep" is true, simulate a "single-step"
-				// back in time: we force m_isForward to false and "applyCursor(1)", which effectively
-				// moves back in time of 1 unit
-				bool old_isForward = m_isForward;
-				m_isForward = false;
-				applyCursor(1);
-				m_isForward = old_isForward;
-
-				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
-
-				m_backwardsSingleStep = false;
-
-				return DRC_OK;
+			else {
+				switch (m_resumeMode)
+				{
+				case resume_mode_t::RESMOD_NONE:
+				{
+					this->applyCursor(m_maxSteps);
+					m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
+					break;
+				}
+				case resume_mode_t::RESMOD_INTO:
+				{
+					this->applyCursor(1);
+					m_events.addStepEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid);
+					break;
+				}
+				default:
+					m_logger->info("unsupported resume mode ", (int)m_resumeMode);
+					break;
+				}
 			}
-
-			switch (m_resumeMode)
-			{
-			case resume_mode_t::RESMOD_NONE:
-			{
-				this->applyCursor(-1);
-				m_events.addBreakPointEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid, m_cursor->GetProgramCounter());
-				break;
-			}
-			case resume_mode_t::RESMOD_INTO:
-			{
-				this->applyCursor(1);
-				m_events.addStepEvent(m_processId, m_cursor->GetThreadInfo()[0].threadid);
-				break;
-			}
-			default:
-				m_logger->info("unsupported resume mode ", (int)m_resumeMode);
-				break;
-			}
-			m_resumeMode = resume_mode_t::RESMOD_NONE;
 		}
+		m_resumeMode = resume_mode_t::RESMOD_NONE;
 		return DRC_OK;
 	}
 
@@ -536,12 +520,6 @@ namespace ttddbg
 		hide_wait_box();
 
 		msg("[ttddbg] full run completed\n");
-	}
-
-	/**********************************************************************/
-	void DebuggerManager::requestBackwardsSingleStep()
-	{
-		m_backwardsSingleStep = true;
 	}
 
 	/**********************************************************************/
